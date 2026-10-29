@@ -7,15 +7,15 @@
 <title>Marakand · Boshqaruv</title>
 <link rel="icon" href="/favicon.png">
 <style>
-:root{--n:#001622;--n1:#04202f;--n2:#073147;--y:#d9b25f;--cr:#f4ecdc;--mut:#8fa6b0;--ln:#ffffff1c;--r:#ff6b6b;--g:#3ecf8e}
+:root{--n:#001622;--n1:#04202f;--n2:#073147;--y:#d6a84f;--cr:#f4ecdc;--mut:#8fa6b0;--ln:#ffffff1c;--r:#ff6b6b;--g:#3ecf8e}
 *{box-sizing:border-box}body{margin:0;background:var(--n);color:var(--cr);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 button{font:inherit;cursor:pointer;color:inherit;background:none;border:0}a{color:var(--y)}
-.btn{border:1px solid var(--ln);background:var(--n1);border-radius:10px;padding:8px 14px;font-weight:600}.btn:hover{border-color:var(--y)}.btn.p{background:linear-gradient(135deg,#ecd08e,#d9b25f 55%,#b88a3a);color:#1a1405;border:0}.btn.d{color:var(--r)}.btn:disabled{opacity:.5}
+.btn{border:1px solid var(--ln);background:var(--n1);border-radius:10px;padding:8px 14px;font-weight:600}.btn:hover{border-color:var(--y)}.btn.p{background:linear-gradient(135deg,#f0d58f,#d6a84f 55%,#a9812f);color:#241a05;border:0}.btn.d{color:var(--r)}.btn:disabled{opacity:.5}
 input,select,textarea{font:inherit;padding:9px 11px;border:1px solid var(--ln);border-radius:10px;background:var(--n);color:var(--cr);width:100%}input:focus,select:focus,textarea:focus{outline:0;border-color:var(--y)}input[type=checkbox]{width:auto}
-header{background:#00101a;border-bottom:1px solid #d9b25f44;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:5}header>span{display:flex;gap:12px;align-items:center}header b{font-family:Georgia,serif;font-size:18px;color:var(--y)}
+header{background:#00101a;border-bottom:1px solid #d6a84f44;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:5}header>span{display:flex;gap:12px;align-items:center}header b{font-family:Georgia,serif;font-size:18px;color:var(--y)}
 .w{max-width:980px;margin:0 auto;padding:18px}
-.lg{max-width:360px;margin:12vh auto;background:var(--n1);padding:26px;border-radius:18px;border:1px solid #d9b25f44}.lg h2{margin:0 0 14px;font-family:Georgia,serif;color:var(--y)}
-.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}.tabs .on{background:var(--y);color:#1a1405;border-color:var(--y)}
+.lg{max-width:360px;margin:12vh auto;background:var(--n1);padding:26px;border-radius:18px;border:1px solid #d6a84f44}.lg h2{margin:0 0 14px;font-family:Georgia,serif;color:var(--y)}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}.tabs .on{background:var(--y);color:#241a05;border-color:var(--y)}
 .st{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
 .box{background:var(--n1);border:1px solid var(--ln);border-radius:14px;padding:14px;margin-bottom:12px}.st .box{margin:0;text-align:center;color:var(--mut)}.st b{display:block;font-size:20px;color:var(--y)}
 .r{display:flex;justify-content:space-between;gap:8px;align-items:center}.n0{border-left:4px solid var(--y)}
@@ -23,7 +23,7 @@ header{background:#00101a;border-bottom:1px solid #d9b25f44;padding:10px 20px;di
 .f{display:grid;gap:8px}.f2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.f3{display:grid;grid-template-columns:1.4fr 1fr 110px;gap:8px}
 label.l{font-size:12px;color:var(--mut);display:block;margin:2px 0}
 .ph{width:64px;height:64px;border-radius:12px;border:1px dashed var(--mut);background:var(--n);display:grid;place-items:center;overflow:hidden;cursor:pointer;font-size:11px;color:var(--mut);text-align:center;flex:none;position:relative}.ph img{width:100%;height:100%;object-fit:cover}
-.ph.big{width:110px;height:140px}
+.ph.big{width:110px;height:140px}.ph.xl{width:200px;height:250px}
 .x{position:absolute;top:2px;right:2px;background:#000a;color:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;font-size:13px}
 .mi{display:grid;grid-template-columns:64px 1.4fr 1fr 110px 1.6fr auto auto;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--ln)}
 .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}.gi{background:var(--n);border:1px solid var(--ln);border-radius:12px;overflow:hidden}.gi img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}.gi div{padding:8px;display:grid;gap:6px}
@@ -33,6 +33,15 @@ label.l{font-size:12px;color:var(--mut);display:block;margin:2px 0}
 .dish{padding:12px}.dtop{display:flex;gap:12px;align-items:flex-start}.chk{display:flex;gap:8px;align-items:center}input[type=checkbox]{accent-color:var(--y);width:18px;height:18px}
 .bar{position:sticky;bottom:0;background:#001622e6;backdrop-filter:blur(8px);padding:10px 0;display:flex;gap:8px;z-index:4}
 @media(max-width:760px){.st{grid-template-columns:1fr 1fr}.st .box:last-child{grid-column:span 2}.f2,.f3{grid-template-columns:1fr}.w{padding:12px}header b{font-size:15px}.tabs .btn{padding:8px 11px}}
+.bd.s0{background:#d6a84f33;color:var(--y)}.bd.s1{background:#3b82f633;color:#9cc4ff}.bd.s2{background:#a78bfa33;color:#cdbbff}.bd.s3{background:#0b3d2b;color:#9ff0c8}.bd.s4{background:#ff6b6b33;color:var(--r)}
+.tl{display:flex;gap:6px;font-size:12px;color:var(--mut);margin-top:5px;flex-wrap:wrap}.tl b{color:var(--cr)}.tl i{font-style:normal}.tl em{margin-left:auto;font-style:normal}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.chips .btn.on{background:var(--y);color:#241a05;border-color:var(--y)}
+.dr{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}.dr>div{flex:1;min-width:150px}input[type=date]{color-scheme:dark}
+.kp{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}.kp .box{margin:0}.kp small{color:var(--mut);display:block;font-size:12px}.kp b{display:block;font-size:19px;color:var(--y);margin:2px 0}.kp em{font-style:normal;font-size:12px;color:var(--mut)}
+.up{color:var(--g)!important}.dn{color:var(--r)!important}
+.ch svg{width:100%;height:auto;display:block}
+.tp{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--ln);font-size:13px}.tp div{height:8px;background:var(--n2);border-radius:99px;overflow:hidden}.tp i{display:block;height:100%;background:var(--y);border-radius:99px}.tp em{font-style:normal;color:var(--mut);min-width:96px;text-align:right}
+@media(max-width:760px){.kp{grid-template-columns:1fr 1fr}.tp{grid-template-columns:1fr auto}.tp div{grid-column:1/-1;order:3}.tp em{min-width:0}}
 </style>
 </head>
 <body>
@@ -62,13 +71,13 @@ async function load(first){
     if(first||!D){D=d;seen=d.orders.map(o=>o.id);view();return}
     const ids=d.orders.map(o=>o.id);
     if(ids.some(i=>!seen.includes(i))){beep();document.title='Yangi buyurtma! · Marakand'}
-    seen=ids;D.orders=d.orders;D.tg=d.tg;
+    seen=ids;D.orders=d.orders;D.tg=d.tg;D.today=d.today;
     if(tab==='orders'&&!document.activeElement.closest('select'))view();
   }catch(e){}
 }
 function setP(o,p,v){const k=p.split('.');let c=o;for(let i=0;i<k.length-1;i++)c=c[k[i]];c[k[k.length-1]]=v}
 const onEdit=e=>{const t=e.target;if(!t.dataset||!t.dataset.p||!D)return;setP(D,t.dataset.p,t.type==='checkbox'?(t.checked?1:0):t.type==='number'?+t.value:t.value)};
-document.addEventListener('input',onEdit);document.addEventListener('change',onEdit);
+document.addEventListener('input',e=>{const t=e.target;if(t.id==='uq'){US.q=t.value;$('ul').innerHTML=ulist()}});document.addEventListener('input',onEdit);document.addEventListener('change',onEdit);
 /* ---- rasm yuklash ---- */
 function pickFiles(multi){return new Promise(res=>{const i=document.createElement('input');i.type='file';i.accept='image/*';i.multiple=!!multi;i.style.display='none';document.body.appendChild(i);i.onchange=()=>{res([...i.files]);i.remove()};i.click()})}
 async function toJpeg(file){
@@ -87,13 +96,16 @@ async function upload(file){
   const d=await api('/api/admin/upload',{data});return d.url;
 }
 /* ---- koʻrinishlar ---- */
+const LGN={acc:'Qabul qildi',cl:'Kuryer qabul qildi',way:'Yoʻlga chiqdi',dl:'Yetkazdi',cx:'Bekor qildi'},RTN={a:'admin chati',c:'kuryer chati',p:'panel'};
+const hmT=t=>new Date(t).toLocaleTimeString('ru-RU',{timeZone:'Asia/Tashkent',hour:'2-digit',minute:'2-digit'});
+const tl=o=>(o.log||[]).filter(e=>LGN[e.k]).map(e=>`<div class="tl"><span>${LGN[e.k]}:</span><b>${esc(e.by||'')}</b><i>(${RTN[e.r]||''})</i><em>${hmT(e.t)}</em></div>`).join('');
 const ordV=(arch)=>[...D.orders].filter(o=>arch?o.st>=3:o.st<3).reverse().map(o=>`<div class="box ${o.st===0?'n0':''}"><div class="r"><b>#${o.id}</b><span class="bd">${new Date(o.t).toLocaleString('ru-RU')}</span></div>
-<p style="margin:6px 0"><b>${esc(o.name)}</b> · <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a><br>${esc(o.addr)}${o.lat!=null?` · <a href="https://yandex.uz/maps/?pt=${+o.lng},${+o.lat}&z=17&l=map" target="_blank" rel="noopener">Xaritada ochish</a>`:''}${o.note?`<br><i>${esc(o.note)}</i>`:''}</p>
+<p style="margin:6px 0"><b>${esc(o.name)}</b> · <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a>${o.uid?` · <a href="tg://user?id=${+o.uid}">Telegram</a>`:''}<br>${esc(o.addr)}${o.lat!=null?` · <a href="https://yandex.uz/maps/?pt=${+o.lng},${+o.lat}&z=17&l=map" target="_blank" rel="noopener">Xaritada ochish</a>`:''}${o.note?`<br><i>${esc(o.note)}</i>`:''}</p>
 ${o.items.map(i=>`<div class="r"><span>${esc(i.n)} × ${i.q}</span><span>${fmt(i.p*i.q)}</span></div>`).join('')}
 <div class="r" style="margin:8px 0"><b>Jami · ${esc(o.pay)}</b><b>${fmt(o.total)}</b></div>
-<div class="r"><select data-s="${o.id}" style="max-width:220px">${ST.map((s,k)=>`<option value="${k}" ${k===o.st?'selected':''}>${s}</option>`).join('')}</select>
-${o.tg===false?`<span><span class="bd bad">Telegramga yuborilmadi</span> <button class="btn" data-a="resend" data-i="${o.id}">Qayta yuborish</button></span>`:o.tg?'<span class="bd">Telegramga yuborildi</span>':''}</div></div>`).join('')||'<div class="box">Hozircha buyurtma yoʻq.</div>';
-const phs=(img,p,a)=>`<div class="ph ${a==='big'?'big':''}" data-a="img" data-p="${p}">${img?`<img src="${esc(img)}" alt=""><button class="x" data-a="imgx" data-p="${p}" title="Olib tashlash">×</button>`:'Rasm<br>qoʻshish'}</div>`;
+<div class="r"><span>${D.tg.on?`<span class="bd s${o.st}">${ST[o.st]}</span>`:`<select data-s="${o.id}" style="max-width:220px">${ST.map((s,k)=>`<option value="${k}" ${k===o.st?'selected':''}>${s}</option>`).join('')}</select>`}</span>
+${o.tg===false?`<span><span class="bd bad">Telegramga yuborilmadi</span> <button class="btn" data-a="resend" data-i="${o.id}">Qayta yuborish</button></span>`:o.tg?'<span class="bd">Telegramga yuborildi</span>':''}</div>${tl(o)}</div>`).join('')||'<div class="box">Hozircha buyurtma yoʻq.</div>';
+const phs=(img,p,a)=>`<div class="ph ${a||''}" data-a="img" data-p="${p}">${img?`<img src="${esc(img)}" alt=""><button class="x" data-a="imgx" data-p="${p}" title="Olib tashlash">×</button>`:'Rasm<br>qoʻshish'}</div>`;
 const menuV=()=>`<datalist id="cats">${[...new Set(D.menu.map(m=>m.c))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>${D.menu.map((m,i)=>`<div class="box dish"><div class="dtop">${phs(m.img,'menu.'+i+'.img')}<div class="f" style="flex:1;min-width:0"><input data-p="menu.${i}.n" value="${esc(m.n)}" placeholder="Taom nomi"><div class="f2"><input data-p="menu.${i}.c" list="cats" value="${esc(m.c)}" placeholder="Kategoriya"><input type="number" inputmode="numeric" data-p="menu.${i}.p" value="${m.p}" placeholder="Narxi (soʻm)"></div></div></div><input data-p="menu.${i}.d" value="${esc(m.d)}" placeholder="Qisqa tavsif" style="margin-top:8px"><div class="r" style="margin-top:10px"><label class="chk"><input type="checkbox" data-p="menu.${i}.a" ${m.a?'checked':''}> Menyuda bor</label><button class="btn d" data-a="mdel" data-i="${i}">Oʻchirish</button></div></div>`).join('')}<div class="bar"><button class="btn" data-a="madd">+ Yangi taom</button><button class="btn p" data-a="msave">Saqlash</button></div>`;
 const ICN={'':'Belgisiz',star:'Reyting (yulduz)',bike:'Yetkazish',cash:'Pul',clock:'Soat'},LNK={'#menu':'Menyu','#gallery':'Galereya','#about':'Biz haqimizda','#contact':'Aloqa'};
 const slV=()=>D.slides.map((s,i)=>`<div class="box"><div class="r" style="margin-bottom:10px"><b>Slayd ${i+1}</b><span><label><input type="checkbox" data-p="slides.${i}.a" ${s.a?'checked':''}> koʻrsatish</label> <button class="btn" data-a="sup" data-i="${i}" ${i?'':'disabled'}>↑</button> <button class="btn" data-a="sdn" data-i="${i}" ${i<D.slides.length-1?'':'disabled'}>↓</button> <button class="btn d" data-a="sdel" data-i="${i}">Oʻchirish</button></span></div>
@@ -102,25 +114,87 @@ const slV=()=>D.slides.map((s,i)=>`<div class="box"><div class="r" style="margin
 <div><label class="l">Matn</label><textarea rows="2" data-p="slides.${i}.p">${esc(s.p)}</textarea></div>
 <div class="f2"><div><label class="l">Tugma yozuvi (boʻsh = tugma yoʻq)</label><input data-p="slides.${i}.b" value="${esc(s.b)}"></div><div><label class="l">Tugma qayerga olib boradi</label><select data-p="slides.${i}.l">${Object.entries(LNK).map(([v,t])=>`<option value="${v}" ${s.l===v?'selected':''}>${t}</option>`).join('')}</select></div></div>
 <div class="f3"><div><label class="l">Kartochka matni (masalan: Naqd pul)</label><input data-p="slides.${i}.bt" value="${esc(s.bt)}"></div><div><label class="l">Kartochka izohi</label><input data-p="slides.${i}.bs" value="${esc(s.bs)}"></div><div><label class="l">Belgi</label><select data-p="slides.${i}.ic">${Object.entries(ICN).map(([v,t])=>`<option value="${v}" ${s.ic===v?'selected':''}>${t}</option>`).join('')}</select></div></div></div></div>`).join('')+`<button class="btn" data-a="sadd">+ Yangi slayd</button> <button class="btn p" data-a="ssave">Saqlash</button><div class="hint">Slaydlar saytda har 5 soniyada oʻzi almashadi. Saqlashni unutmang.</div>`;
-const galV=()=>`<div class="box"><b>“Biz haqimizda” bo‘limidagi rasm</b><div class="hint">Saytdagi “Biz haqimizda” matni yonida koʻrinadigan bitta rasm. Tanlanmasa, galereyaning birinchi rasmi chiqadi.</div><div class="r" style="justify-content:flex-start;gap:14px">${phs(D.settings.aboutImg,'settings.aboutImg','big')}<button class="btn p" data-a="asave">Saqlash</button></div></div>`+`<div class="r" style="margin-bottom:12px"><div class="hint" style="margin:0">Rasmlar yuklanishi bilan saytda koʻrinadi. Bir vaqtda bir nechta rasm tanlash mumkin.</div><button class="btn p" data-a="gadd">+ Rasm qoʻshish</button></div>
+const galV=()=>`<div class="r" style="margin-bottom:12px"><div class="hint" style="margin:0">Rasmlar yuklanishi bilan saytda koʻrinadi. Bir vaqtda bir nechta rasm tanlash mumkin.</div><button class="btn p" data-a="gadd">+ Rasm qoʻshish</button></div>
 <div class="gal">${D.gallery.map((g,i)=>`<div class="gi"><img src="${esc(g.img)}" alt=""><div><input data-p="gallery.${i}.t" value="${esc(g.t)}" placeholder="Izoh (ixtiyoriy)"><span class="r"><span><button class="btn" data-a="gl" data-i="${i}" ${i?'':'disabled'}>←</button> <button class="btn" data-a="gr" data-i="${i}" ${i<D.gallery.length-1?'':'disabled'}>→</button></span><button class="btn d" data-a="gdel" data-i="${i}">Oʻchirish</button></span></div></div>`).join('')||'<div class="box">Galereya boʻsh.</div>'}</div>
 ${D.gallery.length?'<div style="margin-top:12px"><button class="btn p" data-a="gsave">Izohlarni saqlash</button></div>':''}`;
-const setV=()=>`<div class="box"><b>Telegram</b><p>Holati: ${D.tg.on?'<span class="bd" style="background:#0b3d2b;color:#9ff0c8">Sozlangan</span>':'<span class="bd bad">Sozlanmagan (BOT_TOKEN va CHAT_ID yoʻq)</span>'}</p><button class="btn p" data-a="tgtest">Test xabar yuborish</button><div id="tgr" style="margin-top:10px"></div><div class="hint">Test xabar guruhga kelsa, buyurtmalar ham keladi. Xato chiqsa, sababi shu yerda yoziladi.</div></div>`;
+const abV=()=>`<div class="box"><b>“Biz haqimizda” rasmi</b><div class="hint">Saytdagi “Biz haqimizda” matni yonida shu bitta rasm koʻrinadi. Rasm yuklanishi yoki olib tashlanishi bilan avtomatik saqlanadi.</div><div class="r" style="justify-content:flex-start;gap:14px;align-items:flex-start">${phs(D.about.img,'about.img','xl')}<div class="hint" style="margin:0">${D.about.img?'Rasmni almashtirish uchun ustiga bosing.':'Rasm tanlanmagan: saytda kafe logotipi koʻrinadi.'}<br>Tavsiya: tik (4:5) format, kamida 800 px kenglikda.</div></div></div>`;
+const saveAbout=async()=>{const r=await api('/api/admin/about',{about:D.about});D.about=r.about;view();toast('Saqlandi')};
+const setV=()=>{const g=D.tg;return `<div class="box"><b>Telegram bot</b><p>Holati: ${g.on?'<span class="bd s3">Sozlangan</span>':'<span class="bd bad">Sozlanmagan (BOT_TOKEN va CHAT_ID yoʻq)</span>'}</p>
+<div class="hint" style="margin-top:0">${g.bot?`Bot: <b>@${esc(g.bot)}</b> · rejim: ${g.mode==='webhook'?'webhook':'polling (mahalliy sinov)'}<br>`:''}Kuryerlar chati: ${g.courier?'<b>ulangan</b>':'ulanmagan (COURIER_CHAT_ID)'}<br>Mini App havolasi: ${g.app?`<a href="${esc(g.app)}" target="_blank" rel="noopener">${esc(g.app)}</a>`:'yoʻq (PUBLIC_URL https boʻlishi kerak)'}</div>
+<button class="btn p" data-a="tgtest">Test xabar yuborish</button><div id="tgr" style="margin-top:10px"></div>
+<div class="hint">Test xabar admin chatiga (va ulangan boʻlsa kuryerlar chatiga) keladi. Guruhda <b>/id</b> yozsangiz, bot chat ID sini koʻrsatadi.</div></div>`};
+/* ---- statistika ---- */
+const tk=t=>new Date(t+5*36e5).toISOString().slice(0,10),addD=(k,n)=>new Date(Date.parse(k)+n*864e5).toISOString().slice(0,10),dm=k=>k.slice(8)+'.'+k.slice(5,7)+'.'+k.slice(0,4);
+const PRE=[['0','Bugun'],['1','Kecha'],['7','7 kun'],['30','30 kun'],['90','90 kun'],['365','1 yil'],['c','Boshqa davr']];
+let SS={p:'7',from:'',to:'',data:null,err:'',busy:false};
+function preRange(p){const t=tk(Date.now());if(p==='0')return[t,t];if(p==='1'){const y=addD(t,-1);return[y,y]}return[addD(t,-(+p-1)),t]}
+function checkRange(f,t){
+  if(!f||!t)return'Ikkala sanani ham tanlang';
+  if(f>t)return'Boshlanish sanasi tugash sanasidan keyin boʻlmasligi kerak';
+  if(t>tk(Date.now()))return'Kelajak sanasini tanlab boʻlmaydi';
+  if((Date.parse(t)-Date.parse(f))/864e5+1>366)return'Davr 1 yildan oshmasligi kerak (eng koʻp 366 kun)';
+  return'';
+}
+async function loadStats(){
+  const[f,t]=SS.p==='c'?[SS.from,SS.to]:preRange(SS.p),e=checkRange(f,t);
+  if(e){SS.err=e;view();return}
+  SS.err='';SS.busy=true;view();
+  try{SS.data=await api(`/api/admin/stats?from=${f}&to=${t}`)}catch(er){SS.err=er.message}
+  SS.busy=false;view();
+}
+const shortN=n=>n>=1e6?(n/1e6).toFixed(n>=1e7?0:1).replace('.0','')+' mln':n>=1e3?Math.round(n/1e3)+' ming':String(n);
+const dlt=(c,p)=>!p?(c?'<em class="up">yangi</em>':'<em>—</em>'):`<em class="${c>=p?'up':'dn'}">${c>=p?'▲':'▼'} ${Math.abs((c-p)/p*100).toFixed(Math.abs(c-p)/p>=1?0:1)}%</em>`;
+function chart(days){
+  const L=days.length;let g=[];
+  if(L<=31)g=days.map(d=>({l:d.d.slice(8)+'.'+d.d.slice(5,7),t:dm(d.d),n:d.n,s:d.s}));
+  else if(L<=120){for(let i=0;i<L;i+=7){const c=days.slice(i,i+7);g.push({l:c[0].d.slice(8)+'.'+c[0].d.slice(5,7),t:dm(c[0].d)+' – '+dm(c[c.length-1].d),n:c.reduce((a,x)=>a+x.n,0),s:c.reduce((a,x)=>a+x.s,0)})}}
+  else{const m=new Map();for(const d of days){const k=d.d.slice(0,7),x=m.get(k)||{l:k.slice(5)+'.'+k.slice(2,4),t:k.slice(5)+'.'+k.slice(0,4),n:0,s:0};x.n+=d.n;x.s+=d.s;m.set(k,x)}g=[...m.values()]}
+  const mx=Math.max(...g.map(x=>x.s));if(!mx)return'<div class="hint" style="padding:18px 0">Bu davrda yetkazilgan buyurtma yoʻq.</div>';
+  const mag=10**Math.floor(Math.log10(mx)),top=Math.ceil(mx/mag*2)/2*mag,W=700,H=230,pl=76,pb=26,pt=12,bw=(W-pl)/g.length,ph=H-pb-pt,ev=Math.ceil(g.length/7);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tushum grafigi">`;
+  for(let i=0;i<=3;i++){const y=pt+ph-ph*i/3;s+=`<line x1="${pl}" x2="${W}" y1="${y}" y2="${y}" stroke="#ffffff14"/><text x="${pl-6}" y="${y+4}" text-anchor="end" fill="#8fa6b0" font-size="11">${shortN(Math.round(top*i/3))}</text>`}
+  g.forEach((x,i)=>{const h=x.s/top*ph,bx=pl+i*bw+bw*.15,w=bw*.7;
+    if(x.s>0)s+=`<rect x="${bx.toFixed(1)}" y="${(pt+ph-h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="${Math.min(4,w/2).toFixed(1)}" fill="#d6a84f"><title>${x.t}: ${fmt(x.s)} · ${x.n} ta</title></rect>`;
+    if(i%ev===0)s+=`<text x="${(pl+i*bw+bw/2).toFixed(1)}" y="${H-8}" text-anchor="middle" fill="#8fa6b0" font-size="11">${x.l}</text>`});
+  return s+'</svg>';
+}
+const stV=()=>{
+  const d=SS.data,[f,t]=SS.p==='c'?[SS.from||preRange('7')[0],SS.to||preRange('7')[1]]:preRange(SS.p),today=tk(Date.now());
+  const ctl=`<div class="chips">${PRE.map(([k,v])=>`<button class="btn ${SS.p===k?'on':''}" data-a="sp" data-i="${k}">${v}</button>`).join('')}</div>`+(SS.p==='c'?`<div class="dr"><div><label class="l">Boshlanish sanasi</label><input type="date" id="sf" value="${f}" max="${today}"></div><div><label class="l">Tugash sanasi</label><input type="date" id="sto" value="${t}" max="${today}"></div><button class="btn p" data-a="sgo">Koʻrsatish</button></div>`:'')+(SS.err?`<div class="hint" style="color:var(--r)">${esc(SS.err)}</div>`:'');
+  if(!d)return ctl+`<div class="box">${SS.busy?'Yuklanmoqda…':'Davrni tanlang'}</div>`;
+  const k=d.tot,p=d.prev,pf=addD(d.from,-d.span),pt2=addD(d.from,-1);
+  const kp=(l,v,c)=>`<div class="box"><small>${l}</small><b>${v}</b>${c||''}</div>`;
+  const mxq=Math.max(1,...d.top.map(x=>x.q));
+  return ctl+`<div class="hint">${dm(d.from)}${d.from===d.to?'':' – '+dm(d.to)} · ${d.span} kun · oldingi davr: ${dm(pf)}${pf===pt2?'':' – '+dm(pt2)} bilan solishtirildi${SS.busy?' · yangilanmoqda…':''}</div>
+<div class="kp">${kp('Tushum (yetkazilgan)',fmt(k.s),dlt(k.s,p.s))}${kp('Yetkazilgan buyurtmalar',k.n,dlt(k.n,p.n))}${kp('Oʻrtacha chek',fmt(k.avg),dlt(k.avg,p.avg))}${kp('Bekor qilingan',k.c,'')}</div>
+<div class="box ch"><b>Tushum dinamikasi</b><div style="margin-top:8px">${chart(d.days)}</div></div>
+<div class="box"><b>Eng koʻp sotilgan taomlar</b>${d.top.map(x=>`<div class="tp"><span>${esc(x.n)}</span><div><i style="width:${(x.q/mxq*100).toFixed(0)}%"></i></div><b>${x.q} ta</b><em>${fmt(x.s)}</em></div>`).join('')||'<div class="hint">Maʼlumot yoʻq.</div>'}</div>
+<div class="hint">Tushum faqat “Yetkazildi” holatiga oʻtgan buyurtmalardan hisoblanadi. Arxivdan oʻchirilgan buyurtmalar ham statistikada saqlanadi.</div>`;
+};
+/* ---- mijozlar (Mini App foydalanuvchilari) ---- */
+let US={list:null,total:0,q:''};
+async function loadUsers(){try{const d=await api('/api/admin/users');US.list=d.users;US.total=d.total}catch(e){toast(e.message,true)}view()}
+const dtT=t=>new Date(t).toLocaleString('ru-RU',{timeZone:'Asia/Tashkent',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+const ulist=()=>{const q=US.q.toLowerCase(),l=(US.list||[]).filter(u=>!q||[u.fn,u.ln,u.un,u.id].join(' ').toLowerCase().includes(q));
+  return l.map(u=>`<div class="box"><div class="r"><b>${esc([u.fn,u.ln].filter(Boolean).join(' ')||'Nomaʼlum')}</b><span class="bd">${u.n} ta buyurtma · ${fmt(u.s)}</span></div><div class="hint" style="margin:4px 0 0">${u.un?`<a href="https://t.me/${esc(u.un)}" target="_blank" rel="noopener">@${esc(u.un)}</a> · `:''}ID ${u.id}${u.ph?` · ${esc(u.ph)}`:''}<br>Oxirgi kirish: ${dtT(u.t1)} · Birinchi kirish: ${dtT(u.t0)}</div></div>`).join('')||'<div class="box">Hech kim topilmadi.</div>'};
+const uV=()=>!US.list?'<div class="box">Yuklanmoqda…</div>':`<div class="r" style="margin-bottom:10px"><div class="hint" style="margin:0">Mini App ga kirgan mijozlar: <b>${US.total}</b> ta${US.total>US.list.length?` (oxirgi ${US.list.length} tasi koʻrsatilgan)`:''}</div></div><input id="uq" placeholder="Ism, @username yoki ID boʻyicha qidirish" value="${esc(US.q)}" style="margin-bottom:12px"><div id="ul">${ulist()}</div>`;
 function view(){
-  const td=new Date().toDateString(),t=D.orders.filter(o=>new Date(o.t).toDateString()===td&&o.st!==4),nw=D.orders.filter(o=>o.st===0).length;
-  const ar=D.orders.filter(o=>o.st>=3).length,T={orders:'Buyurtmalar'+(nw?` (${nw})`:''),archive:'Arxiv'+(ar?` (${ar})`:''),menu:'Menyu',slides:'Slayderlar',gallery:'Galereya',set:'Sozlamalar'};
+  const nw=D.orders.filter(o=>o.st===0).length,pr=D.orders.filter(o=>o.st===1||o.st===2).length,ar=D.orders.filter(o=>o.st>=3).length,td=D.today||{n:0,s:0};
+  const T={orders:'Buyurtmalar'+(nw?` (${nw})`:''),archive:'Arxiv'+(ar?` (${ar})`:''),stats:'Statistika',users:'Mijozlar',menu:'Menyu',slides:'Slayderlar',gallery:'Galereya',about:'Biz haqimizda',set:'Sozlamalar'};
   A.innerHTML=`<header><b>Marakand · Boshqaruv</b><span><a href="/" target="_blank" rel="noopener">Saytni koʻrish</a> &nbsp; <button class="btn" data-a="lo">Chiqish</button></span></header><div class="w"><div class="tabs">${Object.entries(T).map(([k,v])=>`<button class="btn ${tab===k?'on':''}" data-a="tab" data-i="${k}">${v}</button>`).join('')}</div>
-${tab==='archive'?`<div class="hint">Yetkazilgan va bekor qilingan buyurtmalar ${D.keep===0?'darhol':D.keep+' kundan keyin'} avtomatik oʻchiriladi.</div>${ordV(true)}`:tab==='orders'?`<div class="st"><div class="box"><b>${t.length}</b>Bugungi buyurtma</div><div class="box"><b>${fmt(t.reduce((s,o)=>s+o.total,0))}</b>Bugungi tushum</div><div class="box"><b>${nw}</b>Yangi</div></div>${ordV(false)}`:tab==='menu'?menuV():tab==='slides'?slV():tab==='gallery'?galV():setV()}</div>`;
+${tab==='archive'?`<div class="hint">Yetkazilgan va bekor qilingan buyurtmalar ${D.keep===0?'darhol':D.keep+' kundan keyin'} avtomatik oʻchiriladi. Statistika esa saqlanib qoladi.</div>${ordV(true)}`:tab==='orders'?`<div class="st"><div class="box"><b>${nw}</b>Yangi</div><div class="box"><b>${pr}</b>Jarayonda</div><div class="box"><b>${fmt(td.s)}</b>Bugungi tushum · ${td.n} ta yetkazildi</div></div>${D.tg.on?'':'<div class="hint">Telegram ulanmagan: holatni shu yerdan oʻzgartirasiz. Telegram ulansa, holat bot tugmalari orqali yuritiladi.</div>'}${ordV(false)}`:tab==='stats'?stV():tab==='users'?uV():tab==='menu'?menuV():tab==='slides'?slV():tab==='gallery'?galV():tab==='about'?abV():setV()}</div>`;
 }
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-a]');if(!t||!D)return;e.stopPropagation();
   const a=t.dataset.a,i=+t.dataset.i,p=t.dataset.p;
   run(async()=>{
-    if(a==='tab'){tab=t.dataset.i;view()}
+    if(a==='tab'){tab=t.dataset.i;view();if(tab==='stats'&&!SS.data)loadStats();if(tab==='users')loadUsers()}
+    else if(a==='sp'){SS.p=t.dataset.i;if(SS.p==='c'){if(!SS.from)[SS.from,SS.to]=preRange('7');view()}else loadStats()}
+    else if(a==='sgo'){SS.from=$('sf').value;SS.to=$('sto').value;loadStats()}
     else if(a==='lo'){await api('/api/admin/logout',{});D=null;login()}
     else if(a==='resend'){const r=await api('/api/admin/resend',{id:i});toast(r.ok?'Telegramga yuborildi':'Yuborib boʻlmadi. Sozlamalarda testni tekshiring',!r.ok);await load(true)}
-    else if(a==='img'){if(e.target.closest('.x'))return;const f=(await pickFiles(false))[0];if(!f)return;toast('Yuklanmoqda…');setP(D,p,await upload(f));view();toast('Rasm yuklandi')}
-    else if(a==='imgx'){setP(D,p,'');view()}
+    else if(a==='img'){if(e.target.closest('.x'))return;const f=(await pickFiles(false))[0];if(!f)return;toast('Yuklanmoqda…');setP(D,p,await upload(f));if(p==='about.img')await saveAbout();else{view();toast('Rasm yuklandi')}}
+    else if(a==='imgx'){setP(D,p,'');if(p==='about.img')await saveAbout();else view()}
     else if(a==='madd'){D.menu.push({id:Date.now(),n:'',c:D.menu.length?D.menu[D.menu.length-1].c:'Taomlar',p:0,d:'',a:1,img:'',e:''});view()}
     else if(a==='mdel'){if(confirm('Taom oʻchirilsinmi?')){D.menu.splice(i,1);view()}}
     else if(a==='msave'){const r=await api('/api/admin/menu',{menu:D.menu});D.menu=r.menu;view();toast('Menyu saqlandi')}
@@ -133,11 +207,10 @@ document.addEventListener('click',e=>{
       for(let k=0;k<fs.length;k++){toast(`Yuklanmoqda ${k+1}/${fs.length}…`);try{D.gallery.push({id:Date.now()+k,img:await upload(fs[k]),t:''});ok++}catch(er){toast(er.message,true)}}
       if(ok){const r=await api('/api/admin/gallery',{gallery:D.gallery});D.gallery=r.gallery;toast(ok+' ta rasm qoʻshildi')}view();
     }
-    else if(a==='asave'){const r=await api('/api/admin/settings',{aboutImg:D.settings.aboutImg||''});D.settings=r.settings;view();toast('“Biz haqimizda” rasmi saqlandi')}
     else if(a==='gdel'){if(confirm('Rasm oʻchirilsinmi?')){D.gallery.splice(i,1);const r=await api('/api/admin/gallery',{gallery:D.gallery});D.gallery=r.gallery;view();toast('Oʻchirildi')}}
     else if(a==='gl'||a==='gr'){const j=a==='gl'?i-1:i+1;[D.gallery[i],D.gallery[j]]=[D.gallery[j],D.gallery[i]];const r=await api('/api/admin/gallery',{gallery:D.gallery});D.gallery=r.gallery;view()}
     else if(a==='gsave'){const r=await api('/api/admin/gallery',{gallery:D.gallery});D.gallery=r.gallery;toast('Saqlandi')}
-    else if(a==='tgtest'){$('tgr').textContent='Yuborilmoqda…';const r=await api('/api/admin/telegram-test',{});$('tgr').innerHTML=r.ok?`<span class="bd" style="background:#0b3d2b;color:#9ff0c8">Muvaffaqiyatli: ${esc(r.bot)}. Guruhni tekshiring.</span>`:`<span class="bd bad">Xato: ${esc(r.error)}</span>`}
+    else if(a==='tgtest'){$('tgr').textContent='Yuborilmoqda…';const r=await api('/api/admin/telegram-test',{});$('tgr').innerHTML=r.ok?`<span class="bd s3">Muvaffaqiyatli: ${esc(r.bot)}</span><div class="hint">${(r.chats||[]).map(esc).join('<br>')}</div>`:`<span class="bd bad">Xato: ${esc(r.error)}</span>`}
   });
 });
 document.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.s&&D)run(async()=>{await api('/api/admin/status',{id:+t.dataset.s,st:+t.value});const o=D.orders.find(x=>x.id==t.dataset.s);if(o)o.st=+t.value;toast(+t.value>=3?'Arxivga oʻtkazildi':'Holat yangilandi');view()})});
