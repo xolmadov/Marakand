@@ -360,10 +360,11 @@ const tgH=()=>INIT?{'x-tg-init':INIT}:{};
 const hm=t=>t?new Date(t).toLocaleTimeString('ru-RU',{timeZone:'Asia/Tashkent',hour:'2-digit',minute:'2-digit'}):'';
 const dmy=t=>new Date(t).toLocaleDateString('ru-RU',{timeZone:'Asia/Tashkent',day:'2-digit',month:'2-digit'});
 const SLB=['Yuborildi','Tayyorlanmoqda','Yoʻlda','Yetkazildi'],SNM=['Yangi','Tayyorlanmoqda','Yoʻlda','Yetkazildi','Bekor qilindi'];
+const lbl=o=>o.st===1?['','Qabul qilindi','Tayyorlanmoqda','Tayyor'][o.kp||1]:SNM[o.st];
 const hap=t=>{try{TW.HapticFeedback.notificationOccurred(t||'success')}catch(e){}};
 const tgUserInfo=()=>(TW&&TW.initDataUnsafe&&TW.initDataUnsafe.user)||{};
 const note=o=>['Buyurtmangiz yuborildi. Tasdiqlanishini kutyapmiz.',
-  o.cr?`Qabul qilindi, taom tayyorlanmoqda. Kuryer: ${o.cr}.`:'Qabul qilindi, taom tayyorlanmoqda.',
+  ['','Buyurtmangiz qabul qilindi. Tez orada tayyorlashni boshlaymiz.','Taomingiz tayyorlanmoqda.',o.cr?`Taom tayyor. Kuryer ${o.cr} olib chiqadi.`:'Taom tayyor. Kuryer yoʻlga chiqishi kutilmoqda.'][o.kp||1],
   o.cr?`${o.cr} buyurtmangizni olib yoʻlda. Tez orada eshigingizda!`:'Buyurtmangiz yoʻlda. Tez orada eshigingizda!',
   'Yetkazildi. Yoqimli ishtaha!','Buyurtma bekor qilindi.'][o.st];
 function stepper(o){
@@ -381,7 +382,7 @@ function renderAx(){
 function renderTrk(){
   const o=MY&&MY.orders.find(x=>x.st<3),b=$('trk');
   if(!o||axOpen){b.hidden=true;return}
-  b.hidden=false;b.innerHTML=`<i class="lv"></i><div><b>Buyurtma № ${o.id} · ${SNM[o.st]}</b><small>${esc(note(o))}</small></div><em>Kuzatish ›</em>`;
+  b.hidden=false;b.innerHTML=`<i class="lv"></i><div><b>Buyurtma № ${o.id} · ${lbl(o)}</b><small>${esc(note(o))}</small></div><em>Kuzatish ›</em>`;
 }
 function prefill(me){
   const u=tgUserInfo();
@@ -395,7 +396,7 @@ async function loadMy(){
     const r=await fetch('/api/my',{headers:tgH(),cache:'no-store'});if(!r.ok)throw new Error(r.status);
     const d=await r.json(),old=MY;MY=d;
     if(!pre){pre=true;prefill(d.me)}
-    if(old)for(const o of d.orders){const p=old.orders.find(x=>x.id===o.id);if(p&&(p.st!==o.st||p.cr!==o.cr)){hap(o.st===4?'error':'success');break}}
+    if(old)for(const o of d.orders){const p=old.orders.find(x=>x.id===o.id);if(p&&(p.st!==o.st||p.cr!==o.cr||p.kp!==o.kp)){hap(o.st===4?'error':'success');break}}
     renderAx();renderTrk();
   }catch(e){}
   schedule();
