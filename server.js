@@ -6,8 +6,12 @@ const DIR=E.DATA_DIR||__dirname,DB=path.join(DIR,'data.json'),UP=path.join(DIR,'
 // Supabase (ixtiyoriy): SUPABASE_URL + SUPABASE_KEY berilsa, ma'lumot va rasmlar Supabase'da saqlanadi
 const SB=E.SUPABASE_URL&&E.SUPABASE_KEY?{u:E.SUPABASE_URL.replace(/\/+$/,''),k:E.SUPABASE_KEY,b:E.SUPABASE_BUCKET||'uploads'}:null;
 if(!SB)fs.mkdirSync(UP,{recursive:true});
-const KEEP=E.ORDER_KEEP_DAYS!==undefined&&E.ORDER_KEEP_DAYS!==''?Math.max(0,+E.ORDER_KEEP_DAYS||0):3;
-const CSP=n=>["default-src 'self'","script-src 'self' 'nonce-"+n+"' https://cdnjs.cloudflare.com https://maps.googleapis.com https://maps.gstatic.com","style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://maps.googleapis.com","font-src 'self' https://fonts.gstatic.com data:","img-src 'self' data: blob: https://commons.wikimedia.org https://upload.wikimedia.org https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://api.maptiler.com https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.googleusercontent.com"+(SB?' https://*.supabase.co':''),"connect-src 'self' https://nominatim.openstreetmap.org https://*.googleapis.com","worker-src blob:","frame-src 'none'","object-src 'none'","base-uri 'self'","form-action 'self'","frame-ancestors 'none'"].join('; ');
+const KEEP=E.ORDER_KEEP_DAYS!==undefined&&E.ORDER_KEEP_DAYS!==''?Math.max(0,+E.ORDER_KEEP_DAYS||0):30;
+// Mini App havolasi (https): PUBLIC_URL yoki Render bergan RENDER_EXTERNAL_URL. Chatlar: admin va (ixtiyoriy) kuryerlar
+const PURL=(E.PUBLIC_URL||E.RENDER_EXTERNAL_URL||'').trim().replace(/\/+$/,''),WA=/^https:\/\//.test(PURL)?PURL:'';
+const CH_A=String(E.CHAT_ID||''),CH_C=E.COURIER_CHAT_ID&&String(E.COURIER_CHAT_ID)!==CH_A?String(E.COURIER_CHAT_ID):'';
+const TZ=5*36e5,dkey=t=>new Date(t+TZ).toISOString().slice(0,10); // Toshkent kuni (UTC+5)
+const CSP=(n,fa)=>["default-src 'self'","script-src 'self' 'nonce-"+n+"' https://cdnjs.cloudflare.com https://maps.googleapis.com https://maps.gstatic.com https://telegram.org","style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://maps.googleapis.com","font-src 'self' https://fonts.gstatic.com data:","img-src 'self' data: blob: https://commons.wikimedia.org https://upload.wikimedia.org https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://api.maptiler.com https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.googleusercontent.com"+(SB?' https://*.supabase.co':''),"connect-src 'self' https://nominatim.openstreetmap.org https://*.googleapis.com","worker-src blob:","frame-src 'none'","object-src 'none'","base-uri 'self'","form-action 'self'","frame-ancestors "+(fa?"'self' https://web.telegram.org https://*.telegram.org https://telegram.org":"'none'")].join('; ');
 const cl=(s,n)=>String(s??'').trim().slice(0,n),h=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const PLOV='https://commons.wikimedia.org/wiki/Special:FilePath/Samarkan_Pilaf.jpg?width=700';
 const seedMenu=[
@@ -23,7 +27,7 @@ const seedSlides=[
 {id:3,a:1,k:'Qulay toʻlov',h:'Toʻlov *naqd pul* bilan',p:'Oldindan hech narsa toʻlamaysiz. Taomni qabul qilganingizda kuryerga naqd toʻlaysiz.',b:'Menyuga oʻtish',l:'#menu',i1:'/photos/p1.jpg',i2:'/photos/p2.jpg',ic:'cash',bt:'Naqd pul',bs:'Kuryerga toʻlaysiz'},
 {id:4,a:1,k:'Kofe olib ketish',h:'Kafemizga *xush kelibsiz*',p:'Qulay muhit, serviz dasturxon va mehmondoʻst xizmat. Kofeni oʻzingiz bilan olib ketishingiz ham mumkin.',b:'Manzilimiz',l:'#contact',i1:'/photos/p1.jpg',i2:'/photos/p3.jpg',ic:'clock',bt:'07:00 – 23:00',bs:'Ish vaqti'}];
 const seedGal=[{id:1,img:'/photos/p1.jpg',t:''},{id:2,img:'/photos/p3.jpg',t:''},{id:3,img:'/photos/p2.jpg',t:''}];
-let db={menu:seedMenu,orders:[],slides:seedSlides,gallery:seedGal,settings:{aboutImg:''},lastId:1000};
+let db={menu:seedMenu,orders:[],slides:seedSlides,gallery:seedGal,about:{img:'/photos/p1.jpg'},users:{},stats:{},lastId:1000};
 // ---- Supabase (REST, kutubxonasiz) ----
 const sbh=x=>({apikey:SB.k,...(SB.k.startsWith('sb_')?{}:{authorization:'Bearer '+SB.k}),...x});
 async function sbFetch(url,opt,tries=3){let err;for(let i=0;i<tries;i++){try{const r=await fetch(url,opt);if(r.ok||r.status===409)return r;err=new Error('Supabase '+r.status+': '+(await r.text()).slice(0,180))}catch(e){err=e}await new Promise(s=>setTimeout(s,400*(i+1)))}throw err}
@@ -32,10 +36,34 @@ const sbDel=key=>sbFetch(`${SB.u}/rest/v1/kv?key=eq.${encodeURIComponent(key)}`,
 async function sbAll(){const out=[];for(let off=0;;off+=1000){const r=await sbFetch(`${SB.u}/rest/v1/kv?select=key,value&order=key&limit=1000&offset=${off}`,{headers:sbh()});const rows=await r.json();out.push(...rows);if(rows.length<1000)break}return out}
 async function sbUpload(name,buf){await sbFetch(`${SB.u}/storage/v1/object/${SB.b}/${name}`,{method:'POST',headers:sbh({'content-type':'image/jpeg','x-upsert':'true'}),body:buf});return `${SB.u}/storage/v1/object/public/${SB.b}/${name}`}
 // ---- saqlash ----
+// Tugagan buyurtmalar KEEP kundan keyin oʻchadi; ularning summasi kunlik statistikaga (db.stats) yigʻib qoʻyiladi
+let statsDirty=false;
+function fold(o){
+  if(!o.done||(o.st!==3&&o.st!==4))return;
+  const k=dkey(o.done),d=db.stats[k]||(db.stats[k]={n:0,s:0,c:0,it:{}});
+  if(o.st===3){d.n++;d.s+=o.total;for(const i of o.items){const x=d.it[i.n]||(d.it[i.n]=[0,0]);x[0]+=i.q;x[1]+=i.p*i.q}}else d.c++;
+  statsDirty=true;
+}
 async function purge(){
   const n=Date.now(),old=db.orders.filter(o=>o.done&&n-o.done>=KEEP*864e5);let any=false;
-  for(const o of old){try{if(SB)await sbDel('order:'+o.id);db.orders=db.orders.filter(x=>x!==o);any=true}catch(e){console.error('Eski buyurtmani oʻchirish xatosi:',e.message)}}
-  if(any&&!SB)saveLocal();
+  for(const o of old){try{if(SB)await sbDel('order:'+o.id);db.orders=db.orders.filter(x=>x!==o);fold(o);any=true}catch(e){console.error('Eski buyurtmani oʻchirish xatosi:',e.message)}}
+  const lim=dkey(n-800*864e5);for(const k of Object.keys(db.stats))if(k<lim){delete db.stats[k];statsDirty=true}
+  if(statsDirty){try{if(SB)await sbPut('stats',db.stats);else saveLocal();statsDirty=false}catch(e){console.error('Statistikani saqlash xatosi:',e.message)}}
+  else if(any&&!SB)saveLocal();
+}
+// Davr boʻyicha statistika (sanalar Toshkent vaqti bilan, YYYY-MM-DD, ikkala chegara ham kiradi)
+function statsRange(from,to){
+  const days=new Map(),top=new Map(),iso=t=>new Date(t).toISOString().slice(0,10);
+  for(let t=Date.parse(from),e=Date.parse(to);t<=e;t+=864e5)days.set(iso(t),{d:iso(t),n:0,s:0,c:0});
+  const put=(k,n,s,c)=>{const d=days.get(k);if(d){d.n+=n;d.s+=s;d.c+=c}};
+  const dish=(name,q,s)=>{const x=top.get(name)||{n:name,q:0,s:0};x.q+=q;x.s+=s;top.set(name,x)};
+  for(const[k,d]of Object.entries(db.stats))if(days.has(k)){put(k,d.n,d.s,d.c);for(const[name,v]of Object.entries(d.it||{}))dish(name,v[0],v[1])}
+  for(const o of db.orders){
+    if(!o.done)continue;const k=dkey(o.done);if(!days.has(k))continue;
+    if(o.st===3){put(k,1,o.total,0);for(const i of o.items)dish(i.n,i.q,i.p*i.q)}else if(o.st===4)put(k,0,0,1);
+  }
+  const arr=[...days.values()],n=arr.reduce((a,d)=>a+d.n,0),s=arr.reduce((a,d)=>a+d.s,0),c=arr.reduce((a,d)=>a+d.c,0);
+  return{days:arr,tot:{n,s,c,avg:n?Math.round(s/n):0},top:[...top.values()].sort((a,b)=>b.q-a.q||b.s-a.s).slice(0,8)};
 }
 const saveLocal=()=>{fs.writeFileSync(DB+'.tmp',JSON.stringify(db));fs.renameSync(DB+'.tmp',DB)};
 const saveK=async k=>{if(SB)await sbPut(k,db[k]);else saveLocal()};
@@ -46,16 +74,169 @@ const okImg=s=>IMG.test(s||'')?s:'',ICS=['star','bike','cash','clock'];
 const cleanMenu=(m,i)=>({id:Math.floor(+m.id)||Date.now()+i,n:cl(m.n,60),c:cl(m.c,30)||'Boshqa',p:Math.max(0,Math.floor(+m.p)||0),e:'',d:cl(m.d,120),a:m.a?1:0,img:okImg(m.img)});
 const cleanSlide=(s,i)=>({id:Math.floor(+s.id)||Date.now()+i,a:s.a?1:0,k:cl(s.k,60),h:cl(s.h,120),p:cl(s.p,260),b:cl(s.b,30),l:/^(#[\w-]*|\/[\w\-\/]*)$/.test(s.l||'')?s.l:'#menu',i1:okImg(s.i1),i2:okImg(s.i2),ic:ICS.includes(s.ic)?s.ic:'',bt:cl(s.bt,50),bs:cl(s.bs,50)});
 const cleanGal=(g,i)=>({id:Math.floor(+g.id)||Date.now()+i,img:okImg(g.img),t:cl(g.t,80)});
-function gc(){if(SB)return;try{const u=new Set(),add=x=>{const m=/^\/img\/([\w-]+\.jpg)$/.exec(x||'');if(m)u.add(m[1])};db.menu.forEach(m=>add(m.img));db.slides.forEach(s=>{add(s.i1);add(s.i2)});db.gallery.forEach(g=>add(g.img));add(db.settings.aboutImg);for(const f of fs.readdirSync(UP))if(!u.has(f)&&Date.now()-fs.statSync(path.join(UP,f)).mtimeMs>864e5)fs.unlinkSync(path.join(UP,f))}catch(e){console.error('gc:',e.message)}}
-// ---- Telegram ----
-const tgOn=()=>!!(E.BOT_TOKEN&&E.CHAT_ID);
-async function tgCall(method,body){const r=await fetch(`${TG}/bot${E.BOT_TOKEN}/${method}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body||{})});const j=await r.json().catch(()=>({}));if(!j.ok)throw new Error(j.description||'HTTP '+r.status);return j.result}
+const cleanAbout=a=>({img:okImg(a&&a.img)});
+function gc(){if(SB)return;try{const u=new Set(),add=x=>{const m=/^\/img\/([\w-]+\.jpg)$/.exec(x||'');if(m)u.add(m[1])};db.menu.forEach(m=>add(m.img));db.slides.forEach(s=>{add(s.i1);add(s.i2)});db.gallery.forEach(g=>add(g.img));add(db.about&&db.about.img);for(const f of fs.readdirSync(UP))if(!u.has(f)&&Date.now()-fs.statSync(path.join(UP,f)).mtimeMs>864e5)fs.unlinkSync(path.join(UP,f))}catch(e){console.error('gc:',e.message)}}
+// ---- Telegram: bot, tugmalar, Mini App ----
+const tgOn=()=>!!(E.BOT_TOKEN&&CH_A),BOT={un:'',mode:''};
+const TGS=crypto.createHash('sha256').update('wh|'+(E.BOT_TOKEN||'')+'|'+SEC).digest('hex').slice(0,48);
+async function tgCall(method,body){
+  const r=await fetch(`${TG}/bot${E.BOT_TOKEN}/${method}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body||{}),signal:AbortSignal.timeout(method==='getUpdates'?40000:10000)});
+  const j=await r.json().catch(()=>({}));if(!j.ok)throw new Error(j.description||'HTTP '+r.status);return j.result}
+const SN=['Yangi','Tayyorlanmoqda','Yoʻlda','Yetkazildi','Bekor qilindi'],SE=['🆕','🍳','🛵','✅','❌'];
+const tm=t=>new Date(t).toLocaleTimeString('ru-RU',{timeZone:'Asia/Tashkent',hour:'2-digit',minute:'2-digit'});
+const nm=u=>cl([u.first_name,u.last_name].filter(Boolean).join(' ')||u.username||'ID '+u.id,60);
+const RT={a:' (admin)',c:' (kuryer)',p:' (panel)'},LG={acc:'✅ Qabul qildi',cl:'🙋 Kuryer',way:'🛵 Yoʻlga chiqdi',dl:'📦 Yetkazdi',cx:'❌ Bekor qildi'};
+// Buyurtma xabari: ma'lumot + kim nima qilgani (tugmalar tepasida)
+function msgText(o){
+  const who=o.uid?`<a href="tg://user?id=${o.uid}">${h(o.name)}</a>`:h(o.name);
+  let t=`${SE[o.st]} <b>Buyurtma #${o.id}</b> · <i>${SN[o.st]}</i>\n👤 ${who}\n📞 ${h(o.phone)}\n📍 ${h(o.addr)}\n━━━━━━━━\n`+o.items.map(i=>`• ${h(i.n)} × ${i.q} — ${(i.p*i.q).toLocaleString('ru-RU')}`).join('\n')+`\n━━━━━━━━\n💰 <b>Jami: ${o.total.toLocaleString('ru-RU')} soʻm</b> (${o.pay})`+(o.note?`\n💬 ${h(o.note)}`:'')+(o.lat!=null?`\n🗺 <a href="https://yandex.uz/maps/?pt=${o.lng},${o.lat}&amp;z=17&amp;l=map">Yandex</a> · <a href="https://www.google.com/maps?q=${o.lat},${o.lng}">Google</a>`:'');
+  const L=(o.log||[]).filter(e=>LG[e.k]);
+  if(L.length)t+='\n━━━━━━━━\n'+L.map(e=>`${LG[e.k]}: <b>${h(e.by||'')}</b>${RT[e.r]||''} · ${tm(e.t)}`).join('\n');
+  return t}
+const btn=(t,k,o)=>({text:t,callback_data:`o|${o.id}|${k}`});
+// role: 'a' = admin chati, 'c' = kuryerlar chati. Har bosilgandan keyin keyingi tugma chiqadi.
+function kb(o,role){
+  let r=[];
+  if(role==='a'){
+    if(o.st===0)r=[[btn('✅ Qabul qilish','acc',o),btn('❌ Bekor qilish','cx',o)]];
+    else if(o.st===1)r=[[btn('🛵 Yoʻlda','way',o)],[btn('❌ Bekor qilish','cx',o)]];
+    else if(o.st===2)r=[[btn('📦 Yetkazildi','dl',o)]];
+  }else{
+    if(o.st===1)r=[[o.cr?btn('🛵 Yoʻlda','way',o):btn('🙋 Qabul qilish','cl',o)]];
+    else if(o.st===2)r=[[btn('📦 Yetkazildi','dl',o)]];
+  }
+  return {inline_keyboard:r}}
+async function tgSend(o,role){
+  const chat=role==='a'?CH_A:CH_C;
+  const r=await tgCall('sendMessage',{chat_id:chat,text:msgText(o),parse_mode:'HTML',disable_web_page_preview:true,reply_markup:kb(o,role)});
+  (o.m||(o.m={}))[role]={c:chat,i:r.message_id};
+  if(o.lat!=null)await tgCall('sendLocation',{chat_id:chat,latitude:o.lat,longitude:o.lng}).catch(()=>{});
+}
 async function tg(o){
   if(!tgOn())return false;
-  const t=`🆕 <b>Buyurtma #${o.id}</b>\n👤 ${h(o.name)}\n📞 ${h(o.phone)}\n📍 ${h(o.addr)}\n━━━━━━━━\n`+o.items.map(i=>`• ${h(i.n)} × ${i.q} — ${(i.p*i.q).toLocaleString('ru-RU')}`).join('\n')+`\n━━━━━━━━\n💰 <b>Jami: ${o.total.toLocaleString('ru-RU')} soʻm</b> (${o.pay})`+(o.note?`\n💬 ${h(o.note)}`:'')+(o.lat!=null?`\n🗺 <a href="https://yandex.uz/maps/?pt=${o.lng},${o.lat}&amp;z=17&amp;l=map">Yandex</a> · <a href="https://www.google.com/maps?q=${o.lat},${o.lng}">Google</a>`:'');
-  try{await tgCall('sendMessage',{chat_id:E.CHAT_ID,text:t,parse_mode:'HTML',disable_web_page_preview:true});if(o.lat!=null)await tgCall('sendLocation',{chat_id:E.CHAT_ID,latitude:o.lat,longitude:o.lng});return true}
-  catch(e){console.error('Telegram xatosi:',e.message);return false}
+  try{await tgSend(o,'a');return true}catch(e){console.error('Telegram xatosi:',e.message);return false}
 }
+// Bir buyurtma xabarlari ketma-ket yangilanadi (tartib buzilmasligi uchun)
+const rq=new Map();
+const queue=(id,fn)=>{const p=(rq.get(id)||Promise.resolve()).then(fn,fn);rq.set(id,p);const d=()=>{if(rq.get(id)===p)rq.delete(id)};p.then(d,d);return p};
+const renderChats=o=>queue(o.id,async()=>{
+  if(!tgOn())return;
+  for(const role of['a','c']){
+    const m=o.m&&o.m[role];
+    try{
+      if(m)await tgCall('editMessageText',{chat_id:m.c,message_id:m.i,text:msgText(o),parse_mode:'HTML',disable_web_page_preview:true,reply_markup:kb(o,role)});
+      else if(role==='c'&&CH_C&&o.st>=1&&o.st<=2)await tgSend(o,'c');
+    }catch(e){if(!/not modified/i.test(e.message))console.error(`Telegram (${role}) xabarini yangilash xatosi:`,e.message)}
+  }
+  await saveOrder(o).catch(()=>{});
+});
+const DM={
+  acc:o=>`🍳 Buyurtmangiz #${o.id} qabul qilindi va tayyorlanmoqda.`,
+  cl:o=>`🙋 Kuryer <b>${h(String((o.cr||{}).name||'').split(' ')[0])}</b> buyurtmangizni qabul qildi.`,
+  way:o=>`🛵 Buyurtmangiz #${o.id} yoʻlda!`+(o.cr?` Kuryer: <b>${h(String(o.cr.name).split(' ')[0])}</b>.`:''),
+  dl:o=>`✅ Buyurtmangiz #${o.id} yetkazildi. Yoqimli ishtaha! 🍽`,
+  cx:o=>`❌ Buyurtmangiz #${o.id} bekor qilindi.`};
+async function notifyUser(o,k){
+  if(!o.uid||!E.BOT_TOKEN||!DM[k])return;
+  try{await tgCall('sendMessage',{chat_id:o.uid,text:DM[k](o),parse_mode:'HTML',...(WA?{reply_markup:{inline_keyboard:[[{text:'📦 Buyurtmani kuzatish',web_app:{url:WA+'/?open=orders'}}]]}}:{})})}
+  catch(e){/* foydalanuvchi botni ishga tushirmagan boʻlishi mumkin */}
+}
+const KST={acc:1,way:2,dl:3,cx:4};
+// Holatni oʻzgartirish (sinxron tekshiruv + oʻzgartirish: ikki kishi bir vaqtda bossa, faqat biri oʻtadi)
+function transition(o,k,by){
+  const r=by.r,cur=o.st,bad=msg=>({ok:false,msg});
+  if(cur===3)return bad('Buyurtma allaqachon yetkazilgan');
+  if(cur===4)return bad('Buyurtma bekor qilingan');
+  if(r==='a'){
+    if(k==='acc'){if(cur!==0)return bad('Buyurtma allaqachon qabul qilingan')}
+    else if(k==='cx'){if(cur>1)return bad('Yoʻlga chiqqan buyurtmani bekor qilib boʻlmaydi')}
+    else if(k==='way'){if(cur!==1)return bad('Avval buyurtmani qabul qiling')}
+    else if(k==='dl'){if(cur!==2)return bad('Avval "Yoʻlda" tugmasini bosing')}
+    else return bad('Bu tugma admin chati uchun emas');
+  }else{
+    const who=o.cr&&o.cr.id!==by.id;
+    if(k==='cl'){if(cur!==1)return bad('Bu buyurtma hozir olinmaydi');if(o.cr)return bad(o.cr.id===by.id?'Siz allaqachon qabul qilgansiz':`Bu buyurtmani ${o.cr.name} qabul qilgan`)}
+    else if(k==='way'){if(cur!==1)return bad('Bu buyurtma hozir yoʻlga chiqmaydi');if(!o.cr)return bad('Avval "Qabul qilish" tugmasini bosing');if(who)return bad(`Bu buyurtmani ${o.cr.name} qabul qilgan`)}
+    else if(k==='dl'){if(cur!==2)return bad('Avval "Yoʻlda" tugmasini bosing');if(who)return bad(`Bu buyurtmani ${o.cr.name} qabul qilgan`)}
+    else return bad('Bu tugma kuryerlar uchun emas');
+  }
+  const t=Date.now();(o.log||(o.log=[])).push({k,t,by:by.name,uid:by.id,r});
+  if(k==='cl')o.cr={id:by.id,name:by.name};
+  else{
+    o.st=KST[k];o.done=o.st>=3?t:null;
+    if(k==='dl'&&r==='c'&&!o.cr)o.cr={id:by.id,name:by.name};
+    if(o.st===3&&o.uid)userDelivered(o);
+  }
+  return{ok:true,msg:{acc:'✅ Qabul qilindi',cl:'🙋 Buyurtma sizda',way:'🛵 Yoʻlda deb belgilandi',dl:'📦 Yetkazildi deb belgilandi',cx:'❌ Bekor qilindi'}[k]};
+}
+// Admin paneldan (zaxira usul) holatni toʻgʻridan-toʻgʻri oʻzgartirish
+function panelSet(o,st){
+  const k=['re','acc','way','dl','cx'][st],prev=o.st;
+  o.st=st;o.done=st>=3?Date.now():null;(o.log||(o.log=[])).push({k,t:Date.now(),by:'Panel',uid:0,r:'p'});
+  if(o.uid){if(st===3&&prev!==3)userDelivered(o);else if(prev===3&&st!==3)userDelivered(o,true)}
+  return k;
+}
+async function after(o,k){
+  await saveOrder(o).catch(e=>console.error('Buyurtmani yangilash xatosi:',e.message));
+  await Promise.allSettled([renderChats(o),notifyUser(o,k)]);
+  if(KEEP===0&&o.st>=3)await purge().catch(()=>{});
+}
+const answer=(id,text,alert)=>tgCall('answerCallbackQuery',{callback_query_id:id,text,show_alert:!!alert}).catch(()=>{});
+async function onCb(cq){
+  const m=/^o\|(\d+)\|(acc|cx|way|dl|cl)$/.exec(cq.data||''),chat=cq.message&&cq.message.chat?String(cq.message.chat.id):'';
+  const role=chat&&chat===CH_A?'a':chat&&CH_C&&chat===CH_C?'c':null;
+  if(!m||!role)return answer(cq.id);
+  const o=db.orders.find(x=>x.id===+m[1]);
+  if(!o)return answer(cq.id,'Buyurtma topilmadi (arxivdan oʻchirilgan boʻlishi mumkin)',true);
+  const res=transition(o,m[2],{id:cq.from.id,name:nm(cq.from),r:role});
+  if(!res.ok){await answer(cq.id,res.msg,true);return void renderChats(o)}
+  await answer(cq.id,res.msg,false);
+  await after(o,m[2]);
+}
+async function onUpdate(u){
+  if(u.callback_query)return onCb(u.callback_query);
+  const m=u.message;if(!m||!m.text)return;const cmd=m.text.split(/[\s@]/)[0];
+  if(cmd==='/id')return tgCall('sendMessage',{chat_id:m.chat.id,text:`Chat ID: <code>${m.chat.id}</code>`,parse_mode:'HTML'}).catch(()=>{});
+  if(cmd==='/start'&&m.chat.type==='private')return tgCall('sendMessage',{chat_id:m.chat.id,text:'🍽 <b>Marakand cafe</b>\nMilliy taomlar: osh, lagʻmon, manti, shashlik.\nMenyuni ochib buyurtma bering, holatini esa shu yerda kuzatib boring.',parse_mode:'HTML',...(WA?{reply_markup:{inline_keyboard:[[{text:'🍽 Menyuni ochish',web_app:{url:WA}}]]}}:{})}).catch(()=>{});
+}
+async function poll(){
+  let off=0;for(;;){
+    try{const r=await tgCall('getUpdates',{offset:off,timeout:25,allowed_updates:['message','callback_query']});for(const u of r){off=u.update_id+1;onUpdate(u).catch(e=>console.error('Update xatosi:',e.message))}}
+    catch(e){console.error('getUpdates xatosi:',e.message);await new Promise(s=>setTimeout(s,4000))}
+  }
+}
+async function tgStart(){
+  if(!E.BOT_TOKEN)return;
+  try{
+    const me=await tgCall('getMe');BOT.un=me.username||'';
+    await tgCall('setMyCommands',{commands:[{command:'start',description:'Menyuni ochish'},{command:'id',description:'Chat ID ni koʻrsatish'}]}).catch(()=>{});
+    if(WA){
+      await tgCall('setWebhook',{url:WA+'/tg/hook',secret_token:TGS,allowed_updates:['message','callback_query'],max_connections:10});BOT.mode='webhook';
+      await tgCall('setChatMenuButton',{menu_button:{type:'web_app',text:'🍽 Menyu',web_app:{url:WA}}}).catch(e=>console.error('Menyu tugmasini oʻrnatib boʻlmadi:',e.message));
+    }else{await tgCall('deleteWebhook',{});BOT.mode='polling';poll()}
+    console.log('Telegram bot: @'+BOT.un,'|',BOT.mode==='webhook'?'webhook':'polling (mahalliy)',CH_C?'| kuryerlar chati ulangan':'');
+  }catch(e){console.error('Telegram bot ishga tushmadi:',e.message)}
+}
+// ---- Telegram Mini App foydalanuvchilari ----
+const saveUser=x=>{if(SB)sbPut('user:'+x.id,x).catch(e=>console.error('Foydalanuvchini saqlash xatosi:',e.message));else try{saveLocal()}catch(e){console.error(e.message)}};
+// Mini App berган initData ni Telegram imzosi bilan tekshiradi (soxta ID yuborib boʻlmaydi)
+function tgUser(req){
+  const raw=String(req.headers['x-tg-init']||'');if(!raw||raw.length>4096||!E.BOT_TOKEN)return null;
+  let p;try{p=new URLSearchParams(raw)}catch{return null}
+  const hash=p.get('hash');if(!hash||!/^[a-f0-9]{64}$/.test(hash))return null;p.delete('hash');
+  const dcs=[...p.entries()].sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:0).map(([k,v])=>k+'='+v).join('\n');
+  const key=crypto.createHmac('sha256','WebAppData').update(E.BOT_TOKEN).digest();
+  if(!crypto.timingSafeEqual(crypto.createHmac('sha256',key).update(dcs).digest(),Buffer.from(hash,'hex')))return null;
+  const ad=+p.get('auth_date');if(!ad||Date.now()/1000-ad>172800)return null;
+  try{const u=JSON.parse(p.get('user')||'null');return u&&Number.isSafeInteger(u.id)?u:null}catch{return null}
+}
+function touchUser(u,noSave){
+  const n=Date.now(),id=String(u.id),fn=cl(u.first_name,60),ln=cl(u.last_name,60),un=cl(u.username,40),lc=cl(u.language_code,8);let x=db.users[id],ch=false;
+  if(!x){x=db.users[id]={id:u.id,fn,ln,un,lc,t0:n,t1:n,n:0,s:0,ph:'',ad:''};ch=true}
+  else if(x.fn!==fn||x.ln!==ln||x.un!==un||n-x.t1>36e5){Object.assign(x,{fn,ln,un,lc,t1:n});ch=true}
+  if(ch&&!noSave)saveUser(x);return x}
+function userDelivered(o,back){const x=db.users[o.uid];if(x){x.s=Math.max(0,x.s+(back?-o.total:o.total));saveUser(x)}}
+const pub=o=>{const g=k=>((o.log||[]).find(e=>e.k===k)||{}).t||0;return{id:o.id,t:o.t,st:o.st,total:o.total,items:o.items,addr:o.addr,pay:o.pay,ts:{acc:g('acc'),way:g('way'),dl:g('dl'),cx:g('cx')},cr:o.cr?String(o.cr.name).split(' ')[0]:''}};
 // ---- auth ----
 const sign=x=>crypto.createHmac('sha256',SEC).update(x).digest('hex'),sha=x=>crypto.createHash('sha256').update(x).digest();
 const authed=req=>{const m=(req.headers.cookie||'').match(/(?:^|; )s=(\d+)\.([a-f0-9]+)/);if(!m||!SEC)return false;const a=Buffer.from(sign(m[1])),b=Buffer.from(m[2]);return a.length===b.length&&crypto.timingSafeEqual(a,b)&&+m[1]>Date.now()};
@@ -64,10 +245,10 @@ setInterval(()=>{const n=Date.now();for(const m of[tries,ordT,postT])for(const[k
 const body=(req,max=2e5)=>new Promise((r,j)=>{let d='';req.on('data',c=>{d+=c;if(d.length>max){req.destroy();j(new Error('big'))}});req.on('end',()=>{try{r(JSON.parse(d||'{}'))}catch{j(new Error('json'))}})});
 const send=(res,c,o,hd={})=>{res.writeHead(c,{'content-type':'application/json; charset=utf-8','cache-control':'no-store',...hd});res.end(JSON.stringify(o))};
 const sendFile=(res,f,type,hd={})=>fs.readFile(f,(e,d)=>{if(e){res.writeHead(404);return res.end('404')}res.writeHead(200,{'content-type':type,'x-content-type-options':'nosniff',...hd});res.end(d)});
-const page=(res,f,extra={})=>fs.readFile(path.join(PUB,f),'utf8',(e,d)=>{
+const page=(res,f,extra={},frame=false)=>fs.readFile(path.join(PUB,f),'utf8',(e,d)=>{
   if(e){res.writeHead(404);return res.end('404')}
   const n=crypto.randomBytes(16).toString('base64');
-  res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-cache','x-frame-options':'DENY','content-security-policy':CSP(n),...extra});
+  res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-cache',...(frame?{}:{'x-frame-options':'DENY'}),'content-security-policy':CSP(n,frame),...extra});
   res.end(d.replace(/<script>/g,'<script nonce="'+n+'">'));
 });
 const fail=(res,e)=>{console.error('Saqlash xatosi:',e.message);send(res,500,{error:'Saqlab boʻlmadi: '+e.message})};
@@ -77,7 +258,7 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.headers['x-forwarded-proto']==='https')res.setHeader('strict-transport-security','max-age=31536000; includeSubDomains');
   if(M==='GET'){
     if(u==='/healthz')return send(res,200,{ok:1,db:SB?'supabase':'local'});
-    if(u==='/')return page(res,'index.html');
+    if(u==='/')return page(res,'index.html',{},true);
     if(u===AP)return page(res,'admin.html',{'x-robots-tag':'noindex, nofollow','cache-control':'no-store','referrer-policy':'same-origin'});
     if(u==='/logo.png'||u==='/favicon.png')return sendFile(res,path.join(PUB,u),'image/png',{'cache-control':'public, max-age=86400'});
     let m;
@@ -86,11 +267,36 @@ const server=http.createServer(async(req,res)=>{try{
     if(u==='/api/menu')return send(res,200,db.menu.filter(x=>x.a));
     if(u==='/api/slides')return send(res,200,db.slides.filter(x=>x.a));
     if(u==='/api/gallery')return send(res,200,db.gallery);
-    if(u==='/api/settings')return send(res,200,db.settings);
-    if(u==='/api/admin/data')return authed(req)?send(res,200,{menu:db.menu,orders:db.orders.slice(-300),slides:db.slides,gallery:db.gallery,settings:db.settings,tg:{on:tgOn()},db:SB?'supabase':'local',keep:KEEP}):send(res,401,{error:'Ruxsat yoʻq'});
+    if(u==='/api/about')return send(res,200,db.about);
+    if(u==='/api/my'){
+      const tu=tgUser(req);if(!tu)return send(res,401,{error:'Telegram ichida oching'});
+      const x=touchUser(tu);
+      return send(res,200,{me:{id:x.id,fn:x.fn,ln:x.ln,un:x.un,n:x.n,s:x.s,ph:x.ph,ad:x.ad},orders:db.orders.filter(o=>o.uid===x.id).slice(-30).reverse().map(pub)});
+    }
+    if(u==='/api/admin/stats'){
+      if(!authed(req))return send(res,401,{error:'Ruxsat yoʻq'});
+      const q=new URL(req.url,'http://x').searchParams,from=q.get('from')||'',to=q.get('to')||'',re=/^\d{4}-\d{2}-\d{2}$/;
+      if(!re.test(from)||!re.test(to)||isNaN(Date.parse(from))||isNaN(Date.parse(to)))return send(res,400,{error:'Sana notoʻgʻri'});
+      const span=Math.round((Date.parse(to)-Date.parse(from))/864e5)+1;
+      if(span<1)return send(res,400,{error:'Boshlanish sanasi tugash sanasidan keyin boʻlmasligi kerak'});
+      if(span>366)return send(res,400,{error:'Davr 1 yildan oshmasligi kerak (eng koʻp 366 kun)'});
+      const iso=t=>new Date(t).toISOString().slice(0,10);
+      return send(res,200,{from,to,span,...statsRange(from,to),prev:statsRange(iso(Date.parse(from)-span*864e5),iso(Date.parse(from)-864e5)).tot});
+    }
+    if(u==='/api/admin/users'){
+      if(!authed(req))return send(res,401,{error:'Ruxsat yoʻq'});
+      const l=Object.values(db.users).sort((a,b)=>b.t1-a.t1);return send(res,200,{total:l.length,users:l.slice(0,500)});
+    }
+    if(u==='/api/admin/data')return authed(req)?send(res,200,{menu:db.menu,orders:db.orders.slice(-300),slides:db.slides,gallery:db.gallery,about:db.about,tg:{on:tgOn(),courier:!!CH_C,bot:BOT.un,mode:BOT.mode,app:WA},today:statsRange(dkey(Date.now()),dkey(Date.now())).tot,db:SB?'supabase':'local',keep:KEEP}):send(res,401,{error:'Ruxsat yoʻq'});
     res.writeHead(404,{'content-type':'text/plain; charset=utf-8'});return res.end('404 — sahifa topilmadi');
   }
   if(M!=='POST')return res.writeHead(405).end();
+  if(u==='/tg/hook'){
+    const s=String(req.headers['x-telegram-bot-api-secret-token']||'');
+    if(!E.BOT_TOKEN||s.length!==TGS.length||!crypto.timingSafeEqual(Buffer.from(s),Buffer.from(TGS)))return send(res,403,{error:'Ruxsat yoʻq'});
+    let up;try{up=await body(req,1e6)}catch{return send(res,400,{error:'Xato soʻrov'})}
+    send(res,200,{ok:1});onUpdate(up).catch(e=>console.error('Update xatosi:',e.message));return;
+  }
   const og=req.headers.origin;if(og){try{if(new URL(og).host!==req.headers.host)return send(res,403,{error:'Ruxsat yoʻq'})}catch{return send(res,403,{error:'Ruxsat yoʻq'})}}
   if(!/^application\/json/i.test(req.headers['content-type']||''))return send(res,415,{error:'Notoʻgʻri soʻrov turi'});
   const pn=Date.now(),pl=(postT.get(ip)||[]).filter(t=>pn-t<6e4);if(pl.length>=120)return send(res,429,{error:'Juda koʻp soʻrov'});pl.push(pn);postT.set(ip,pl);
@@ -107,12 +313,14 @@ const server=http.createServer(async(req,res)=>{try{
     if(phone.replace(/\D/g,'').length<9)return send(res,400,{error:'Telefon raqamini toʻgʻri kiriting'});
     if(!addr)return send(res,400,{error:'Yetkazish manzilini kiriting'});
     const la=b.lat==null||b.lat===''?NaN:+b.lat,lo=b.lng==null||b.lng===''?NaN:+b.lng,geo=Number.isFinite(la)&&Number.isFinite(lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180;
-    const o={id:++db.lastId,t:now,name,phone,addr,note:cl(b.note,300),pay:'Naqd',items,total,st:0,tg:null,...(geo?{lat:+la.toFixed(6),lng:+lo.toFixed(6)}:{})};
+    const tu=tgUser(req),o={id:++db.lastId,t:now,name,phone,addr,note:cl(b.note,300),pay:'Naqd',items,total,st:0,tg:null,log:[{k:'new',t:now}],m:{},...(tu?{uid:tu.id}:{}),...(geo?{lat:+la.toFixed(6),lng:+lo.toFixed(6)}:{})};
     L.push(now);ordT.set(ip,L);db.orders.push(o);
+    if(tu){const x=touchUser(tu,true);x.n++;x.ph=phone;x.ad=addr;x.t1=now;saveUser(x)}
     if(SB)sbPut('meta',{lastId:db.lastId}).catch(()=>{});
     await saveOrder(o).catch(e=>console.error('Buyurtmani saqlash xatosi:',e.message));
-    o.tg=await tg(o);await saveOrder(o).catch(e=>console.error('Buyurtmani yangilash xatosi:',e.message));
-    return send(res,200,{id:o.id});
+    send(res,200,{id:o.id});
+    tg(o).then(ok=>{o.tg=ok;return saveOrder(o)}).catch(e=>console.error('Buyurtmani yangilash xatosi:',e.message));
+    return;
   }
   if(u==='/api/login'){
     const t=tries.get(ip)||{n:0,t:Date.now()};if(Date.now()-t.t>6e4){t.n=0;t.t=Date.now()}
@@ -123,12 +331,12 @@ const server=http.createServer(async(req,res)=>{try{
   }
   if(!authed(req))return send(res,401,{error:'Ruxsat yoʻq'});
   if(u==='/api/admin/logout')return send(res,200,{ok:1},{'set-cookie':'s=; Path=/; HttpOnly; Max-Age=0'});
-  if(u==='/api/admin/status'){const o=db.orders.find(x=>x.id===b.id);if(o&&b.st>=0&&b.st<=4){o.st=b.st;o.done=b.st>=3?Date.now():null;try{await saveOrder(o)}catch(e){return fail(res,e)}if(KEEP===0&&o.st>=3)await purge()}return send(res,200,{ok:1})}
+  if(u==='/api/admin/status'){const o=db.orders.find(x=>x.id===b.id);if(!o)return send(res,404,{error:'Buyurtma topilmadi'});if(!Number.isInteger(b.st)||b.st<0||b.st>4)return send(res,400,{error:'Holat notoʻgʻri'});if(b.st!==o.st){const k=panelSet(o,b.st);await after(o,k)}return send(res,200,{ok:1})}
   if(u==='/api/admin/resend'){const o=db.orders.find(x=>x.id===b.id);if(!o)return send(res,404,{error:'Buyurtma topilmadi'});o.tg=await tg(o);try{await saveOrder(o)}catch(e){return fail(res,e)}return send(res,200,{ok:o.tg})}
   if(u==='/api/admin/menu'&&Array.isArray(b.menu)){db.menu=b.menu.slice(0,300).map(cleanMenu).filter(m=>m.n&&m.p>0);try{await saveK('menu')}catch(e){return fail(res,e)}gc();return send(res,200,{ok:1,menu:db.menu})}
   if(u==='/api/admin/slides'&&Array.isArray(b.slides)){db.slides=b.slides.slice(0,20).map(cleanSlide).filter(s=>s.h);try{await saveK('slides')}catch(e){return fail(res,e)}gc();return send(res,200,{ok:1,slides:db.slides})}
+  if(u==='/api/admin/about'&&b.about&&typeof b.about==='object'){db.about=cleanAbout(b.about);try{await saveK('about')}catch(e){return fail(res,e)}gc();return send(res,200,{ok:1,about:db.about})}
   if(u==='/api/admin/gallery'&&Array.isArray(b.gallery)){db.gallery=b.gallery.slice(0,60).map(cleanGal).filter(g=>g.img);try{await saveK('gallery')}catch(e){return fail(res,e)}gc();return send(res,200,{ok:1,gallery:db.gallery})}
-  if(u==='/api/admin/settings'){db.settings={aboutImg:okImg(b.aboutImg)};try{await saveK('settings')}catch(e){return fail(res,e)}gc();return send(res,200,{ok:1,settings:db.settings})}
   if(u==='/api/admin/upload'){
     const m=/^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(b.data||'');if(!m)return send(res,400,{error:'Rasm formati notoʻgʻri (JPG boʻlishi kerak)'});
     const buf=Buffer.from(m[1],'base64');if(buf.length>4e6)return send(res,413,{error:'Rasm juda katta'});
@@ -138,8 +346,12 @@ const server=http.createServer(async(req,res)=>{try{
   }
   if(u==='/api/admin/telegram-test'){
     if(!tgOn())return send(res,200,{ok:false,error:'BOT_TOKEN yoki CHAT_ID berilmagan. .env faylini tekshiring.'});
-    try{const me=await tgCall('getMe');await tgCall('sendMessage',{chat_id:E.CHAT_ID,text:'✅ Marakand: test xabar. Telegram ulanishi ishlayapti.'});return send(res,200,{ok:true,bot:'@'+me.username})}
-    catch(e){return send(res,200,{ok:false,error:e.message})}
+    try{
+      const me=await tgCall('getMe'),chats=[];
+      await tgCall('sendMessage',{chat_id:CH_A,text:'✅ Marakand: test xabar. Admin chati ulangan.'});chats.push('Admin chati: ishlayapti');
+      if(CH_C){try{await tgCall('sendMessage',{chat_id:CH_C,text:'✅ Marakand: test xabar. Kuryerlar chati ulangan.'});chats.push('Kuryerlar chati: ishlayapti')}catch(e){chats.push('Kuryerlar chati: xato ('+e.message+')')}}
+      return send(res,200,{ok:true,bot:'@'+me.username,chats});
+    }catch(e){return send(res,200,{ok:false,error:e.message})}
   }
   send(res,404,{error:'Topilmadi'});
 }catch(e){console.error(e);try{send(res,500,{error:'Server xatosi'})}catch{}}});
@@ -149,15 +361,17 @@ async function boot(){
     try{rows=await sbAll()}catch(e){console.error('Supabase bilan ulanib boʻlmadi: '+e.message+'\nAgar "kv" jadvali yoʻq boʻlsa, supabase.sql ni Supabase SQL Editor da ishga tushiring.');process.exit(1)}
     const g=k=>{const r=rows.find(x=>x.key===k);return r&&Array.isArray(r.value)?r.value:null};
     for(const k of['menu','slides','gallery']){const v=g(k);if(v)db[k]=v;else await saveK(k).catch(e=>console.error('Boshlangʻich maʼlumotni yozib boʻlmadi:',e.message))}
-    const stv=rows.find(x=>x.key==='settings');if(stv&&stv.value&&typeof stv.value==='object'&&!Array.isArray(stv.value))db.settings={aboutImg:okImg(stv.value.aboutImg)};
+    {const r=rows.find(x=>x.key==='about');if(r&&r.value&&typeof r.value==='object'&&!Array.isArray(r.value))db.about=cleanAbout(r.value);else await saveK('about').catch(e=>console.error('Boshlangʻich maʼlumotni yozib boʻlmadi:',e.message))}
+    for(const r of rows)if(String(r.key).startsWith('user:')&&r.value&&r.value.id)db.users[r.value.id]=r.value;
+    {const r=rows.find(x=>x.key==='stats');if(r&&r.value&&typeof r.value==='object'&&!Array.isArray(r.value))db.stats=r.value}
     db.orders=rows.filter(x=>String(x.key).startsWith('order:')).map(x=>x.value).sort((a,b)=>a.id-b.id);
     const mt=rows.find(x=>x.key==='meta');db.lastId=Math.max(1000,(mt&&mt.value&&+mt.value.lastId)||0);
     await sbFetch(`${SB.u}/storage/v1/bucket`,{method:'POST',headers:sbh({'content-type':'application/json'}),body:JSON.stringify({id:SB.b,name:SB.b,public:true})},1).catch(()=>{});
     setInterval(()=>sbFetch(`${SB.u}/rest/v1/kv?select=key&limit=1`,{headers:sbh()}).catch(e=>console.error('Supabase keep-alive:',e.message)),6*36e5);
-  }else{try{const d=JSON.parse(fs.readFileSync(DB,'utf8'));for(const k of['menu','slides','gallery'])if(Array.isArray(d[k]))db[k]=d[k];if(Array.isArray(d.orders))db.orders=d.orders;if(d.settings&&typeof d.settings==='object')db.settings={aboutImg:okImg(d.settings.aboutImg)};db.lastId=Math.max(1000,+d.lastId||0)}catch{}gc()}
+  }else{try{const d=JSON.parse(fs.readFileSync(DB,'utf8'));for(const k of['menu','slides','gallery'])if(Array.isArray(d[k]))db[k]=d[k];if(d.about&&typeof d.about==='object')db.about=cleanAbout(d.about);if(d.users&&typeof d.users==='object'&&!Array.isArray(d.users))db.users=d.users;if(d.stats&&typeof d.stats==='object'&&!Array.isArray(d.stats))db.stats=d.stats;if(Array.isArray(d.orders))db.orders=d.orders;db.lastId=Math.max(1000,+d.lastId||0)}catch{}gc()}
   db.menu.forEach(m=>{if(m.id===1&&m.n==='Osh (palov)'&&!m.img)m.img=PLOV});
   db.lastId=Math.max(db.lastId,...db.orders.map(o=>+o.id||0),1000);db.orders.forEach(o=>{if(o.st>=3&&!o.done)o.done=Date.now()});
   await purge();setInterval(()=>purge().catch(()=>{}),36e5).unref();
-  server.listen(PORT,()=>{console.log('Marakand: http://localhost:'+PORT,'| admin:',AP,'| maʼlumot:',SB?'Supabase':'mahalliy fayl');if(!PASS)console.warn('DIQQAT: ADMIN_PASSWORD berilmagan, admin kirish ishlamaydi');else if(PASS.length<10)console.warn('DIQQAT: ADMIN_PASSWORD juda qisqa (kamida 10 belgi boʻlsin)');if(!E.SECRET)console.warn('DIQQAT: SECRET berilmagan. Server qayta yonganda admin qayta kirishi kerak boʻladi');if(!tgOn())console.warn('Eslatma: BOT_TOKEN/CHAT_ID yoʻq, buyurtmalar Telegramga yuborilmaydi')});
+  server.listen(PORT,()=>{console.log('Marakand: http://localhost:'+PORT,'| admin:',AP,'| maʼlumot:',SB?'Supabase':'mahalliy fayl');if(!PASS)console.warn('DIQQAT: ADMIN_PASSWORD berilmagan, admin kirish ishlamaydi');else if(PASS.length<10)console.warn('DIQQAT: ADMIN_PASSWORD juda qisqa (kamida 10 belgi boʻlsin)');if(!E.SECRET)console.warn('DIQQAT: SECRET berilmagan. Server qayta yonganda admin qayta kirishi kerak boʻladi');if(!tgOn())console.warn('Eslatma: BOT_TOKEN/CHAT_ID yoʻq, buyurtmalar Telegramga yuborilmaydi');else{if(!CH_C)console.warn('Eslatma: COURIER_CHAT_ID yoʻq, kuryerlar chati ishlatilmaydi');if(!WA)console.warn('Eslatma: PUBLIC_URL (https) yoʻq: bot polling rejimida ishlaydi va Mini App tugmasi oʻrnatilmaydi. Mahalliy sinov uchun alohida test bot tokenidan foydalaning, chunki polling ishlayotgan serverning webhookini oʻchiradi')}tgStart()});
 }
 boot();
