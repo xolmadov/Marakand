@@ -83,13 +83,16 @@ async function tgCall(method,body){
   const r=await fetch(`${TG}/bot${E.BOT_TOKEN}/${method}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body||{}),signal:AbortSignal.timeout(method==='getUpdates'?40000:10000)});
   const j=await r.json().catch(()=>({}));if(!j.ok)throw new Error(j.description||'HTTP '+r.status);return j.result}
 const SN=['Yangi','Tayyorlanmoqda','Yoʻlda','Yetkazildi','Bekor qilindi'],SE=['🆕','🍳','🛵','✅','❌'];
+const kst=o=>{const L=o.log||[];return L.some(e=>e.k==='rdy')?3:L.some(e=>e.k==='cook')?2:o.st>=1?1:0}; // oshxona: 1 qabul, 2 tayyorlanmoqda, 3 tayyor
+const lab=o=>o.st===1?['','Qabul qilindi','Tayyorlanmoqda','Tayyor'][kst(o)]:SN[o.st];
+const emo=o=>o.st===1?['','📝','🍳','🍽'][kst(o)]:SE[o.st];
 const tm=t=>new Date(t).toLocaleTimeString('ru-RU',{timeZone:'Asia/Tashkent',hour:'2-digit',minute:'2-digit'});
 const nm=u=>cl([u.first_name,u.last_name].filter(Boolean).join(' ')||u.username||'ID '+u.id,60);
-const RT={a:' (admin)',c:' (kuryer)',p:' (panel)'},LG={acc:'✅ Qabul qildi',cl:'🙋 Kuryer',way:'🛵 Yoʻlga chiqdi',dl:'📦 Yetkazdi',cx:'❌ Bekor qildi'};
+const RT={a:' (admin)',c:' (kuryer)',p:' (panel)'},LG={acc:'✅ Qabul qildi',cook:'🍳 Tayyorlashni boshladi',rdy:'🍽 Tayyor qildi',cl:'🙋 Kuryer',way:'🛵 Yoʻlga chiqdi',dl:'📦 Yetkazdi',cx:'❌ Bekor qildi'};
 // Buyurtma xabari: ma'lumot + kim nima qilgani (tugmalar tepasida)
 function msgText(o){
   const who=o.uid?`<a href="tg://user?id=${o.uid}">${h(o.name)}</a>`:h(o.name);
-  let t=`${SE[o.st]} <b>Buyurtma #${o.id}</b> · <i>${SN[o.st]}</i>\n👤 ${who}\n📞 ${h(o.phone)}\n📍 ${h(o.addr)}\n━━━━━━━━\n`+o.items.map(i=>`• ${h(i.n)} × ${i.q} — ${(i.p*i.q).toLocaleString('ru-RU')}`).join('\n')+`\n━━━━━━━━\n💰 <b>Jami: ${o.total.toLocaleString('ru-RU')} soʻm</b> (${o.pay})`+(o.note?`\n💬 ${h(o.note)}`:'')+(o.lat!=null?`\n🗺 <a href="https://yandex.uz/maps/?pt=${o.lng},${o.lat}&amp;z=17&amp;l=map">Yandex</a> · <a href="https://www.google.com/maps?q=${o.lat},${o.lng}">Google</a>`:'');
+  let t=`${emo(o)} <b>Buyurtma #${o.id}</b> · <i>${lab(o)}</i>\n👤 ${who}\n📞 ${h(o.phone)}\n📍 ${h(o.addr)}\n━━━━━━━━\n`+o.items.map(i=>`• ${h(i.n)} × ${i.q} — ${(i.p*i.q).toLocaleString('ru-RU')}`).join('\n')+`\n━━━━━━━━\n💰 <b>Jami: ${o.total.toLocaleString('ru-RU')} soʻm</b> (${o.pay})`+(o.note?`\n💬 ${h(o.note)}`:'')+(o.lat!=null?`\n🗺 <a href="https://yandex.uz/maps/?pt=${o.lng},${o.lat}&amp;z=17&amp;l=map">Yandex</a> · <a href="https://www.google.com/maps?q=${o.lat},${o.lng}">Google</a>`:'');
   const L=(o.log||[]).filter(e=>LG[e.k]);
   if(L.length)t+='\n━━━━━━━━\n'+L.map(e=>`${LG[e.k]}: <b>${h(e.by||'')}</b>${RT[e.r]||''} · ${tm(e.t)}`).join('\n');
   return t}
@@ -99,8 +102,8 @@ function kb(o,role){
   let r=[];
   if(role==='a'){
     if(o.st===0)r=[[btn('✅ Qabul qilish','acc',o),btn('❌ Bekor qilish','cx',o)]];
-    else if(o.st===1)r=[[btn('🛵 Yoʻlda','way',o)],[btn('❌ Bekor qilish','cx',o)]];
-    else if(o.st===2)r=[[btn('📦 Yetkazildi','dl',o)]];
+    else if(o.st===1&&kst(o)===1)r=[[btn('🍳 Tayyorlanmoqda','cook',o)],[btn('❌ Bekor qilish','cx',o)]];
+    else if(o.st===1&&kst(o)===2)r=[[btn('🍽 Tayyor','rdy',o)],[btn('❌ Bekor qilish','cx',o)]];
   }else{
     if(o.st===1)r=[[o.cr?btn('🛵 Yoʻlda','way',o):btn('🙋 Qabul qilish','cl',o)]];
     else if(o.st===2)r=[[btn('📦 Yetkazildi','dl',o)]];
@@ -125,13 +128,15 @@ const renderChats=o=>queue(o.id,async()=>{
     const m=o.m&&o.m[role];
     try{
       if(m)await tgCall('editMessageText',{chat_id:m.c,message_id:m.i,text:msgText(o),parse_mode:'HTML',disable_web_page_preview:true,reply_markup:kb(o,role)});
-      else if(role==='c'&&CH_C&&o.st>=1&&o.st<=2)await tgSend(o,'c');
+      else if(role==='c'&&CH_C&&o.st===1&&kst(o)===3)await tgSend(o,'c');
     }catch(e){if(!/not modified/i.test(e.message))console.error(`Telegram (${role}) xabarini yangilash xatosi:`,e.message)}
   }
   await saveOrder(o).catch(()=>{});
 });
 const DM={
-  acc:o=>`🍳 Buyurtmangiz #${o.id} qabul qilindi va tayyorlanmoqda.`,
+  acc:o=>`📝 Buyurtmangiz #${o.id} qabul qilindi.`,
+  cook:o=>`🍳 Buyurtmangiz #${o.id} tayyorlanmoqda.`,
+  rdy:o=>`🍽 Buyurtmangiz #${o.id} tayyor! Kuryer tez orada yoʻlga chiqadi.`,
   cl:o=>`🙋 Kuryer <b>${h(String((o.cr||{}).name||'').split(' ')[0])}</b> buyurtmangizni qabul qildi.`,
   way:o=>`🛵 Buyurtmangiz #${o.id} yoʻlda!`+(o.cr?` Kuryer: <b>${h(String(o.cr.name).split(' ')[0])}</b>.`:''),
   dl:o=>`✅ Buyurtmangiz #${o.id} yetkazildi. Yoqimli ishtaha! 🍽`,
@@ -150,24 +155,25 @@ function transition(o,k,by){
   if(r==='a'){
     if(k==='acc'){if(cur!==0)return bad('Buyurtma allaqachon qabul qilingan')}
     else if(k==='cx'){if(cur>1)return bad('Yoʻlga chiqqan buyurtmani bekor qilib boʻlmaydi')}
-    else if(k==='way'){if(cur!==1)return bad('Avval buyurtmani qabul qiling')}
-    else if(k==='dl'){if(cur!==2)return bad('Avval "Yoʻlda" tugmasini bosing')}
-    else return bad('Bu tugma admin chati uchun emas');
+    else if(k==='cook'){if(cur!==1)return bad('Avval buyurtmani qabul qiling');if(kst(o)>1)return bad('Allaqachon tayyorlanmoqda')}
+    else if(k==='rdy'){if(cur!==1||kst(o)<2)return bad('Avval "Tayyorlanmoqda" tugmasini bosing');if(kst(o)>2)return bad('Allaqachon tayyor')}
+    else return bad('Bu tugma oshxona (operator) chati uchun emas');
   }else{
     const who=o.cr&&o.cr.id!==by.id;
-    if(k==='cl'){if(cur!==1)return bad('Bu buyurtma hozir olinmaydi');if(o.cr)return bad(o.cr.id===by.id?'Siz allaqachon qabul qilgansiz':`Bu buyurtmani ${o.cr.name} qabul qilgan`)}
-    else if(k==='way'){if(cur!==1)return bad('Bu buyurtma hozir yoʻlga chiqmaydi');if(!o.cr)return bad('Avval "Qabul qilish" tugmasini bosing');if(who)return bad(`Bu buyurtmani ${o.cr.name} qabul qilgan`)}
+    if(k==='cl'){if(cur!==1||kst(o)<3)return bad('Taom hali tayyor emas');if(o.cr)return bad(o.cr.id===by.id?'Siz allaqachon qabul qilgansiz':`Bu buyurtmani ${o.cr.name} qabul qilgan`)}
+    else if(k==='way'){if(cur!==1||kst(o)<3)return bad('Taom hali tayyor emas');if(!o.cr)return bad('Avval "Qabul qilish" tugmasini bosing');if(who)return bad(`Bu buyurtmani ${o.cr.name} qabul qilgan`)}
     else if(k==='dl'){if(cur!==2)return bad('Avval "Yoʻlda" tugmasini bosing');if(who)return bad(`Bu buyurtmani ${o.cr.name} qabul qilgan`)}
     else return bad('Bu tugma kuryerlar uchun emas');
   }
   const t=Date.now();(o.log||(o.log=[])).push({k,t,by:by.name,uid:by.id,r});
   if(k==='cl')o.cr={id:by.id,name:by.name};
+  else if(k==='cook'||k==='rdy'){/* st oʻzgarmaydi: oshxona ichki bosqichi */}
   else{
     o.st=KST[k];o.done=o.st>=3?t:null;
     if(k==='dl'&&r==='c'&&!o.cr)o.cr={id:by.id,name:by.name};
     if(o.st===3&&o.uid)userDelivered(o);
   }
-  return{ok:true,msg:{acc:'✅ Qabul qilindi',cl:'🙋 Buyurtma sizda',way:'🛵 Yoʻlda deb belgilandi',dl:'📦 Yetkazildi deb belgilandi',cx:'❌ Bekor qilindi'}[k]};
+  return{ok:true,msg:{acc:'✅ Qabul qilindi',cook:'🍳 Tayyorlanmoqda deb belgilandi',rdy:'🍽 Tayyor deb belgilandi',cl:'🙋 Buyurtma sizda',way:'🛵 Yoʻlda deb belgilandi',dl:'📦 Yetkazildi deb belgilandi',cx:'❌ Bekor qilindi'}[k]};
 }
 // Admin paneldan (zaxira usul) holatni toʻgʻridan-toʻgʻri oʻzgartirish
 function panelSet(o,st){
@@ -183,7 +189,7 @@ async function after(o,k){
 }
 const answer=(id,text,alert)=>tgCall('answerCallbackQuery',{callback_query_id:id,text,show_alert:!!alert}).catch(()=>{});
 async function onCb(cq){
-  const m=/^o\|(\d+)\|(acc|cx|way|dl|cl)$/.exec(cq.data||''),chat=cq.message&&cq.message.chat?String(cq.message.chat.id):'';
+  const m=/^o\|(\d+)\|(acc|cx|way|dl|cl|cook|rdy)$/.exec(cq.data||''),chat=cq.message&&cq.message.chat?String(cq.message.chat.id):'';
   const role=chat&&chat===CH_A?'a':chat&&CH_C&&chat===CH_C?'c':null;
   if(!m||!role)return answer(cq.id);
   const o=db.orders.find(x=>x.id===+m[1]);
@@ -236,7 +242,7 @@ function touchUser(u,noSave){
   else if(x.fn!==fn||x.ln!==ln||x.un!==un||n-x.t1>36e5){Object.assign(x,{fn,ln,un,lc,t1:n});ch=true}
   if(ch&&!noSave)saveUser(x);return x}
 function userDelivered(o,back){const x=db.users[o.uid];if(x){x.s=Math.max(0,x.s+(back?-o.total:o.total));saveUser(x)}}
-const pub=o=>{const g=k=>((o.log||[]).find(e=>e.k===k)||{}).t||0;return{id:o.id,t:o.t,st:o.st,total:o.total,items:o.items,addr:o.addr,pay:o.pay,ts:{acc:g('acc'),way:g('way'),dl:g('dl'),cx:g('cx')},cr:o.cr?String(o.cr.name).split(' ')[0]:''}};
+const pub=o=>{const g=k=>((o.log||[]).find(e=>e.k===k)||{}).t||0;return{id:o.id,t:o.t,st:o.st,total:o.total,items:o.items,addr:o.addr,pay:o.pay,kp:o.st===1?kst(o):0,ts:{acc:g('acc'),cook:g('cook'),rdy:g('rdy'),way:g('way'),dl:g('dl'),cx:g('cx')},cr:o.cr?String(o.cr.name).split(' ')[0]:''}};
 // ---- auth ----
 const sign=x=>crypto.createHmac('sha256',SEC).update(x).digest('hex'),sha=x=>crypto.createHash('sha256').update(x).digest();
 const authed=req=>{const m=(req.headers.cookie||'').match(/(?:^|; )s=(\d+)\.([a-f0-9]+)/);if(!m||!SEC)return false;const a=Buffer.from(sign(m[1])),b=Buffer.from(m[2]);return a.length===b.length&&crypto.timingSafeEqual(a,b)&&+m[1]>Date.now()};
