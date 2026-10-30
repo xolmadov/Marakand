@@ -145,35 +145,47 @@ body:has(.mp:not([hidden])),body:has(.lb:not([hidden])),body:has(.cart.open){ove
  .cta.o{margin:12px 0 0}.sp{flex-direction:column;align-items:stretch;justify-content:flex-end;gap:16px;height:100%;padding-bottom:78px}.pic{order:-1;display:block;width:min(86vw,330px);height:215px;aspect-ratio:auto;margin:0 auto;flex:none}.pic img:first-child{width:50%;height:100%;left:4%;top:0}.pic .s2{width:42%;height:84%;right:4%;bottom:0}.badge{display:none}.sl h1{font-size:32px;margin-bottom:10px}.sl p{font-size:14px;margin-bottom:18px}.hero{height:min(88vh,720px);min-height:620px}.cnt{display:none}.bgb{filter:blur(12px) brightness(.62) saturate(1.5)}.sl::after{background:linear-gradient(180deg,#001622aa,#001622ee)}.gal{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:none}.gal figure:last-child:nth-child(odd){grid-column:1/-1;aspect-ratio:4/3}.about{padding:20px 20px 70px}.ab{max-width:340px}.cats{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;padding-bottom:4px}.ct{padding:9px 16px}.about .box.photo{aspect-ratio:4/3}.sec{padding-top:60px}.hero{height:clamp(480px,78vh,620px)}
 }
 /* ---- Telegram Mini App: profil va buyurtma kuzatuvi ---- */
+body{font-variant-numeric:lining-nums}
 .hr{display:flex;gap:10px;align-items:center}
-.pbtn{display:none;align-items:center;gap:8px;height:42px;padding:0 14px 0 6px;border-radius:99px;border:1px solid #d6a84f66;background:#00162299;color:var(--cr);font-weight:600;font-size:14px}.tg .pbtn{display:flex}
-.pbtn i{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#f0d58f,#a9812f);color:#241a05;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:14px}
-.ax{position:fixed;inset:0;z-index:95;background:radial-gradient(900px 420px at 80% -10%,#0a3a52 0,transparent 60%),var(--n);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}.ax[hidden]{display:none}
-.axh{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top,0px)) 18px 12px;background:#001622f2;backdrop-filter:blur(12px);border-bottom:1px solid #d6a84f33}
-.axh b{font:600 26px "Cormorant Garamond",Georgia,serif;color:#fff}.axh button{width:40px;height:40px;border-radius:50%;border:1px solid var(--ln);font-size:24px;line-height:1;color:var(--cr)}
-.axb{max-width:560px;margin:0 auto;padding:16px 16px 0}
-.axu{display:flex;gap:14px;align-items:center;background:linear-gradient(180deg,#073147,#04202f);border:1px solid #d6a84f44;border-radius:22px;padding:16px;margin-bottom:12px}
-.axu .av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#f0d58f,#a9812f);color:#241a05;display:grid;place-items:center;font:700 28px "Cormorant Garamond",Georgia,serif;flex:none}
-.axu b{display:block;font-size:17px;color:#fff}.axu small{color:var(--mut);display:block;margin-top:2px}
-.axk{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}.axk div{background:var(--n1);border:1px solid var(--ln);border-radius:16px;padding:12px 14px}
-.axk b{display:block;font:700 22px "Cormorant Garamond",Georgia,serif;color:var(--y);white-space:nowrap}.axk span{color:var(--mut);font-size:12px}
-.axt2{margin:4px 2px 12px;font:600 24px "Cormorant Garamond",Georgia,serif;color:#fff;display:flex;justify-content:space-between;align-items:center}
-.axt2 small{font:500 12px Manrope,system-ui,sans-serif;color:var(--mut);display:flex;align-items:center;gap:6px}.lv{width:8px;height:8px;border-radius:50%;background:var(--y);animation:axp 1.8s infinite}
-.axo{background:var(--n1);border:1px solid var(--ln);border-radius:20px;padding:16px;margin-bottom:12px}.axo.act{border-color:#d6a84f66;box-shadow:0 12px 30px #0006}
-.axt{display:flex;justify-content:space-between;align-items:baseline}.axt b{color:#fff;font-size:16px}.axt span{color:var(--mut);font-size:12px}
-.axs{display:flex;margin:18px 0 10px}.axs>div{flex:1;text-align:center;position:relative;font-size:11px;line-height:1.25;color:var(--mut)}
-.axs>div::before{content:'';position:absolute;top:10px;right:50%;width:100%;height:2px;background:var(--ln)}.axs>div:first-child::before{display:none}
-.axs i{display:grid;place-items:center;width:22px;height:22px;margin:0 auto 7px;border-radius:50%;border:2px solid #ffffff2e;background:var(--n);position:relative;z-index:1;font-style:normal;font-size:12px;font-weight:800;color:#241a05}
-.axs .d{color:var(--cr)}.axs .d i{background:var(--y);border-color:var(--y)}.axs .d i::after{content:'✓'}.axs .d::before,.axs .c::before{background:var(--y)}
-.axs .c{color:#fff;font-weight:600}.axs .c i{border-color:var(--y);animation:axp 1.8s infinite}.axs small{display:block;color:var(--mut);font-size:10px;font-weight:500;margin-top:2px}
-@keyframes axp{0%{box-shadow:0 0 0 0 #d6a84f88}70%{box-shadow:0 0 0 9px #d6a84f00}100%{box-shadow:0 0 0 0 #d6a84f00}}
-.axn{margin:6px 0 10px;color:var(--cr);font-size:14px}.axi{color:var(--mut);font-size:13px}
-.axc{background:#ff6b6b1f;border:1px solid #ff6b6b66;color:#ffb3b3;border-radius:12px;padding:10px 14px;margin:12px 0;font-weight:600;text-align:center}
-.axf{display:flex;justify-content:space-between;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--ln);font-size:13px;color:var(--mut)}.axf b{color:#fff;white-space:nowrap}
-.axe{text-align:center;color:var(--mut);padding:26px 10px}
-.trk{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:24;display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:18px;background:#04202ff4;border:1px solid #d6a84f77;color:#fff;box-shadow:0 14px 34px #000a;text-align:left;backdrop-filter:blur(8px)}.trk[hidden]{display:none}
-.bar.on~.trk{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
-.trk .lv{flex:none}.trk b{display:block;font-size:14px}.trk small{display:block;color:var(--mut);font-size:12px}.trk em{margin-left:auto;color:var(--y);font-style:normal;font-weight:700;font-size:13px;white-space:nowrap}
+.pbtn{display:none;position:relative;width:42px;height:42px;border-radius:50%;border:1px solid #d6a84f66;color:var(--cr);place-items:center;transition:.25s}.tg .pbtn{display:grid}.pbtn:hover{border-color:var(--y);color:var(--y)}.pbtn svg{width:19px;height:19px}
+.pbtn.dot::after{content:'';position:absolute;top:0;right:0;width:10px;height:10px;border-radius:50%;background:var(--y);border:2px solid var(--n)}
+.ax{position:fixed;inset:0;z-index:95;background:var(--n);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(32px + env(safe-area-inset-bottom,0px))}.ax[hidden]{display:none}
+.axh{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top,0px)) 20px 10px;background:#001622f5;border-bottom:1px solid #ffffff14}
+.axh b{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--y);font-weight:700}
+.axh button{width:38px;height:38px;border-radius:50%;border:1px solid #ffffff22;display:grid;place-items:center;color:var(--cr)}.axh svg{width:16px;height:16px}
+.axb{max-width:520px;margin:0 auto;padding:26px 22px 0}
+.axu{display:flex;align-items:center;gap:16px;padding-bottom:24px}
+.axu .av{width:62px;height:62px;border-radius:50%;border:1px solid #d6a84f99;color:var(--y);display:grid;place-items:center;font:500 32px/1 "Cormorant Garamond",Georgia,serif;flex:none}
+.axu b{display:block;font:600 26px/1.1 "Cormorant Garamond",Georgia,serif;color:#fff}.axu small{display:block;color:var(--mut);font-size:13px;margin-top:5px}
+.axk{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #ffffff14;border-bottom:1px solid #ffffff14}
+.axk div{padding:16px 0}.axk div+div{padding-left:22px;border-left:1px solid #ffffff14}
+.axk span{display:block;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.axk b{display:block;margin-top:6px;font:600 28px/1 "Cormorant Garamond",Georgia,serif;color:var(--cr);white-space:nowrap}.axk b small{font:600 10px Manrope,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-left:5px}
+.axt2{display:flex;justify-content:space-between;align-items:center;margin:30px 0 4px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--y);font-weight:700}
+.axt2 small{display:flex;align-items:center;gap:9px;font-size:10.5px;letter-spacing:.14em;color:var(--mut);font-weight:600}
+.lv{display:inline-block;width:7px;height:7px;background:var(--y);transform:rotate(45deg);flex:none}
+.axo{padding:22px 0;border-bottom:1px solid #ffffff14}.axo.act{border:1px solid #d6a84f66;border-radius:8px;padding:20px;margin:14px 0;background:#03192688}
+.axt{display:flex;justify-content:space-between;align-items:baseline}.axt b{font:600 24px/1 "Cormorant Garamond",Georgia,serif;color:#fff}.axt span{color:var(--mut);font-size:12px;letter-spacing:.04em}
+.axg{margin-top:9px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--y)}.axo:not(.act) .axg{color:var(--mut)}.axo.x .axg{color:#ff9d9d}
+.axs{display:flex;margin:20px 0 14px}.axs>div{flex:1 1 0;min-width:0;position:relative;display:flex;flex-direction:column;align-items:center;white-space:nowrap;font-size:11px;line-height:1.25;color:#ffffff66}
+.axs>div::before{content:'';position:absolute;top:5px;right:50%;width:100%;height:1px;background:#ffffff26}.axs>div:first-child::before{display:none}
+.axs i{display:block;width:10px;height:10px;margin:0 auto 12px;transform:rotate(45deg);border:1px solid #ffffff55;background:var(--n);position:relative;z-index:1}
+.axs .d,.axs .c{color:var(--cr)}.axs .d::before,.axs .c::before{background:var(--y)}.axs .d i{background:var(--y);border-color:var(--y)}.axs .c i{border-color:var(--y);box-shadow:0 0 0 3px #d6a84f33}
+.axs small{display:block;margin-top:3px;color:var(--mut);font-size:10.5px}
+.axn{margin:0 0 12px;color:var(--cr);font-size:14px;line-height:1.5}.axi{color:var(--mut);font-size:13px;line-height:1.55}
+.axf{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-top:14px;padding-top:12px;border-top:1px solid #ffffff14;font-size:13px;color:var(--mut)}
+.axf b{font:700 22px/1 "Cormorant Garamond",Georgia,serif;color:var(--y);white-space:nowrap}.axf b small{font:600 9.5px Manrope,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-left:4px}
+.axe{text-align:center;color:var(--mut);padding:34px 10px;line-height:1.7}.axe svg{width:22px;height:22px;color:var(--y);display:block;margin:0 auto 14px}
+.trk{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:24;display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:10px;background:#031a28f7;border:1px solid #d6a84f77;color:#fff;box-shadow:0 10px 30px #000a;text-align:left}.trk[hidden]{display:none}
+.bar.on~.trk{bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+.trk div{flex:1;min-width:0}.trk b{display:block;font:600 20px/1.1 "Cormorant Garamond",Georgia,serif}.trk small{display:block;color:var(--mut);font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.trk svg{width:16px;height:16px;color:var(--y);flex:none}
+/* narxlar: yaxlit (lining) raqamli premium serif */
+.pr{font:700 25px/1 "Cormorant Garamond",Georgia,serif;color:var(--y);letter-spacing:.01em;white-space:nowrap}.pr .u{margin-left:5px;font:600 9.5px Manrope,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+#menu.sec{padding:30px 0 6px}
+@media(max-width:959px){.pr{font-size:22px}.pr .u{margin-left:3px;font-size:9px}#menu.sec{padding-top:22px}}
+.sm{margin:16px 0 4px}.sm>div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;font-size:14px;color:var(--mut)}
+.sm b{font:600 18px "Cormorant Garamond",Georgia,serif;color:var(--cr);white-space:nowrap}.sm .tt{border-top:1px solid var(--ln);margin-top:4px;padding-top:12px;font-size:15px}.sm .tt b{font-size:30px;color:#fff}
+.sm b.nd{font:600 13px Manrope,system-ui,sans-serif;color:var(--y);text-decoration:underline;cursor:pointer;text-align:right;white-space:normal}.dln{margin:2px 0 0;font-size:12px;color:var(--mut);line-height:1.5}.dln.e{color:var(--r)}
 </style>
 </head>
 <body>
@@ -181,15 +193,14 @@ body:has(.mp:not([hidden])),body:has(.lb:not([hidden])),body:has(.cart.open){ove
 <nav class="nav"><a href="#menu">Menyu</a><a href="#gallery">Galereya</a><a href="#about">Biz haqimizda</a><a href="#contact">Aloqa</a></nav>
 <button class="cb" id="cbtn">Savat <span id="ct">0 soʻm</span><b id="cn">0</b></button></div></header>
 <section class="hero" id="top"><div id="slides"></div><button class="arr l" id="pv" aria-label="Oldingi">‹</button><button class="arr r" id="nx" aria-label="Keyingi">›</button><div class="dots" id="dots"></div><div class="cnt" id="cnt"></div></section>
-<section class="sec" id="menu"><div class="w"><h2>Bizning menyu</h2><div class="orn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="6" width="12" height="12"/><rect x="6" y="6" width="12" height="12" transform="rotate(45 12 12)"/></svg></div><p>Taom tanlang va savatga qoʻshing</p>
-<div class="tool"><div class="cats" id="cats"></div><div class="sr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="q" placeholder="Taom qidirish" autocomplete="off"></div></div></div></section>
+<section class="sec" id="menu"><div class="w"><div class="tool"><div class="cats" id="cats"></div><div class="sr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="q" placeholder="Taom qidirish" autocomplete="off"></div></div></div></section>
 <div class="w main"><main><h2 class="t" id="ttl">Barcha taomlar</h2><div class="grid" id="grid"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div></main>
 <aside class="cart" id="cart"><h2><span>Savatingiz</span><button class="cx" id="cx" aria-label="Yopish">×</button></h2>
 <div id="body"><div id="lines"></div>
-<div id="frm" hidden><div class="sum"><span>Jami summa</span><b id="tot"></b></div>
+<div id="frm" hidden><div class="sm"><div><span>Taomlar</span><b id="sub"></b></div><div><span id="dll">Yetkazish</span><b id="dlv"></b></div><div class="tt"><span>Jami</span><b id="tot"></b></div><p class="dln" id="dln"></p></div>
 <div class="sec2">Buyurtma maʼlumotlari</div>
 <label>Ismingiz</label><input class="f" id="fn" autocomplete="name" placeholder="Ismingizni kiriting">
-<label>Telefon raqami</label><input class="f" id="fp" type="tel" placeholder="+998 90 123 45 67" autocomplete="tel">
+<label>Telefon raqami</label><input class="f" id="fp" type="tel" inputmode="tel" placeholder="+998 90 123 45 67" autocomplete="tel">
 <label>Yetkazish manzili</label><input class="f" id="fa" autocomplete="street-address" placeholder="Koʻcha, uy, moʻljal"><button type="button" class="mapb" id="mapb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Xaritadan joylashuvni belgilash</button><div class="locok" id="locok" hidden><span>Joylashuv xaritada belgilandi</span><button type="button" id="locx">Oʻchirish</button></div>
 <label>Izoh (ixtiyoriy)</label><textarea id="fc" rows="2" placeholder="Masalan: achchiq boʻlmasin"></textarea><input class="hp" id="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
 <div class="pay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg><div><b>Toʻlov: naqd pul</b><small>Taomni olganingizda kuryerga toʻlaysiz</small></div></div>
@@ -207,7 +218,8 @@ body:has(.mp:not([hidden])),body:has(.lb:not([hidden])),body:has(.cart.open){ove
 <div class="ax" id="ax" hidden><div class="axh"><b>Profil</b><button id="axx" aria-label="Yopish">×</button></div><div class="axb" id="axb"></div></div>
 <script>
 /* ====== Shu yerni oʻzingiznikiga almashtiring ====== */
-const CFG={phone:'+998905429797',address:'Poytugʻ, Alisher Navoiy MFY, Alisher Navoiy 2-berk koʻchasi, 3',hours:'07:00 – 23:00',delivery:'Poytugʻ boʻylab',lat:40.892109,lng:72.252442,googleKey:'',maptilerKey:'',rating:'4.2 · Yandex Xaritalar',telegram:'',instagram:'https://www.instagram.com/marakand_poytug',map:'https://yandex.uz/maps/org/marakand/83117245278/'};
+const CFG={phone:'1414',address:'Poytugʻ, Alisher Navoiy MFY, Alisher Navoiy 2-berk koʻchasi, 3',hours:'07:00 – 23:00',delivery:'Poytugʻ boʻylab',lat:40.892109,lng:72.252442,delFirst:5000,delKm:2500,googleKey:'',maptilerKey:'',rating:'4.2 · Yandex Xaritalar',telegram:'',instagram:'https://www.instagram.com/marakand_poytug',map:'https://yandex.uz/maps/org/marakand/83117245278/'};
+/*SETTINGS*/
 /* =================================================== */
 const $=i=>document.getElementById(i),fmt=n=>n.toLocaleString('ru-RU')+' soʻm';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -215,8 +227,8 @@ const I={star:'<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3
 const ico=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${I[n]}</svg>`;
 $('stt').innerHTML=`<div><b>${esc(CFG.rating.split(' ')[0])}</b><span>YANDEX REYTINGI</span></div><div><b>Naqd</b><span>TOʻLOV USULI</span></div><div><b>${esc(CFG.hours.replace(/ /g,''))}</b><span>ISH VAQTI</span></div>`;
 $('hrs').textContent=CFG.hours;
-const tel=CFG.phone.replace(/(\+998)(\d{2})(\d{3})(\d{2})(\d{2})/,'$1 $2 $3 $4 $5');
-$('ctc').innerHTML=`<p>${esc(CFG.address)}</p>`+(CFG.phone?`<a href="tel:${esc(CFG.phone)}">${esc(tel)}</a>`:'')+(CFG.telegram?`<a href="${esc(CFG.telegram)}" target="_blank" rel="noopener">Telegram</a>`:'')+(CFG.instagram?`<a href="${esc(CFG.instagram)}" target="_blank" rel="noopener">Instagram</a>`:'')+`<a href="${esc(CFG.map)}" target="_blank" rel="noopener">Xaritada koʻrish</a>`;
+const tdig=CFG.phone.replace(/[^\d+]/g,''),tel=tdig.replace(/^(\+998)(\d{2})(\d{3})(\d{2})(\d{2})$/,'$1 $2 $3 $4 $5')||CFG.phone;
+$('ctc').innerHTML=`<p>${esc(CFG.address)}</p>`+(CFG.phone?`<a href="tel:${esc(tdig)}">${esc(tel)}</a>`:'')+(CFG.telegram?`<a href="${esc(CFG.telegram)}" target="_blank" rel="noopener">Telegram</a>`:'')+(CFG.instagram?`<a href="${esc(CFG.instagram)}" target="_blank" rel="noopener">Instagram</a>`:'')+`<a href="${esc(CFG.map)}" target="_blank" rel="noopener">Xaritada koʻrish</a>`;
 let sls=[],si=0,tm;
 const fmtH=t=>esc(t).replace(/\*([^*]+)\*/g,'<em>$1</em>');
 function buildSlides(list){
@@ -246,21 +258,24 @@ let lx=0;$('lb').addEventListener('touchstart',e=>{lx=e.touches[0].clientX},{pas
 function imgErr(i){const p=i.parentNode;p.classList.add('ph');const e=document.createElement('i');e.textContent=i.dataset.m||'';i.replaceWith(e)}
 document.addEventListener('error',e=>{const i=e.target;if(i&&i.tagName==='IMG'&&i.dataset&&i.dataset.m!==undefined)imgErr(i)},true);
 const mono=m=>`<i>${esc(m.n.trim().charAt(0).toUpperCase())}</i>`;
-let menu=[],cat='Hammasi',cart={},qs='';
+let DL=null,DLerr='',ORD=[],menu=[],cat='Hammasi',cart={},qs='';
 try{cart=JSON.parse(localStorage.getItem('mc')||'{}')}catch(e){}
 const keep=()=>{try{localStorage.setItem('mc',JSON.stringify(cart))}catch(e){}};
 const by=id=>menu.find(m=>m.id==id),ids=()=>Object.keys(cart).filter(by);
 const tot=()=>ids().reduce((s,i)=>s+by(i).p*cart[i],0),cnt=()=>ids().reduce((s,i)=>s+cart[i],0);
 const ctl=m=>cart[m.id]?`<div class="q"><button data-d="${m.id}">−</button><b>${cart[m.id]}</b><button data-i="${m.id}">+</button></div>`:`<button class="plus" data-i="${m.id}" aria-label="Qoʻshish">+</button>`;
 function draw(){
-  const cats=['Hammasi',...new Set(menu.map(m=>m.c))];
+  const have=new Set(menu.map(m=>m.c)),cats=['Hammasi',...ORD.filter(c=>have.has(c)),...[...have].filter(c=>!ORD.includes(c))];
   $('cats').innerHTML=cats.map(c=>`<button class="ct ${c===cat&&!qs?'on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join('');
   const l=menu.filter(m=>qs?m.n.toLowerCase().includes(qs):(cat==='Hammasi'||m.c===cat));
   $('ttl').textContent=qs?`“${qs}” boʻyicha natija`:(cat==='Hammasi'?'Barcha taomlar':cat);
-  $('grid').innerHTML=l.map((m,k)=>`<div class="card" style="animation-delay:${Math.min(k,12)*35}ms"><div class="im ${m.img?'':'ph'}">${m.img?`<img src="${esc(m.img)}" alt="${esc(m.n)}" loading="lazy" data-m="${esc(m.n.trim().charAt(0).toUpperCase())}">`:mono(m)}</div><div class="bd"><b>${esc(m.n)}</b><small>${esc(m.d)}</small><div class="row"><span class="pr">${fmt(m.p)}</span>${ctl(m)}</div></div></div>`).join('')||'<p style="color:var(--mut)">Hech narsa topilmadi</p>';
+  $('grid').innerHTML=l.map((m,k)=>`<div class="card" style="animation-delay:${Math.min(k,12)*35}ms"><div class="im ${m.img?'':'ph'}">${m.img?`<img src="${esc(m.img)}" alt="${esc(m.n)}" loading="lazy" data-m="${esc(m.n.trim().charAt(0).toUpperCase())}">`:mono(m)}</div><div class="bd"><b>${esc(m.n)}</b><small>${esc(m.d)}</small><div class="row"><span class="pr">${m.p.toLocaleString('ru-RU')}<span class="u">soʻm</span></span>${ctl(m)}</div></div></div>`).join('')||'<p style="color:var(--mut)">Hech narsa topilmadi</p>';
   const n=cnt();$('cn').textContent=n;$('ct').textContent=fmt(tot());$('bar').classList.toggle('on',n>0);$('bn').textContent='Savat · '+n+' ta';$('bt').textContent=fmt(tot());
   $('lines').innerHTML=ids().map(i=>{const m=by(i);return `<div class="ln"><span class="th">${m.img?`<img src="${esc(m.img)}" alt="" data-m="${esc(m.n.trim().charAt(0).toUpperCase())}">`:mono(m)}</span><span>${esc(m.n)}<small>${fmt(m.p)}</small></span><div class="q"><button data-d="${i}">−</button><b>${cart[i]}</b><button data-i="${i}">+</button></div></div>`}).join('')||`<div class="em">${ico('cart')}<br>Savatingiz boʻsh.<br>Menyudan taom tanlang.</div>`;
-  $('frm').hidden=!n;$('tot').textContent=fmt(tot());$('go').textContent='Buyurtma berish · '+fmt(tot());
+  const sb=tot(),all=sb+(DL?DL.fee:0),dv=$('dlv');
+  $('frm').hidden=!n;$('sub').textContent=fmt(sb);dv.className=DL?'':'nd';dv.textContent=DL?fmt(DL.fee):'Manzilni belgilang';$('dll').textContent=DL?`Yetkazish · ${DL.km} km`:'Yetkazish';
+  $('dln').className='dln'+(DLerr?' e':'');$('dln').textContent=DLerr||(DL?'':`Yetkazish narxi joylashuvingiz xaritada belgilangach hisoblanadi: 1 km gacha ${fmt(CFG.delFirst)}, keyingi har km ${fmt(CFG.delKm)}.`);
+  $('tot').textContent=fmt(all);$('go').textContent=DL?'Buyurtma berish · '+fmt(all):'Buyurtma berish';
 }
 const shut=()=>$('cart').classList.remove('open');
 document.addEventListener('click',e=>{
@@ -276,11 +291,23 @@ document.addEventListener('click',e=>{
 $('bar').onclick=$('cbtn').onclick=()=>{$('ok').hidden=true;$('body').hidden=false;$('cart').classList.add('open');$('cart').scrollIntoView({block:'nearest'})};
 $('cx').onclick=shut;
 $('q').oninput=e=>{qs=e.target.value.trim().toLowerCase();draw()};
-$('fp').onfocus=()=>{if(!$('fp').value)$('fp').value='+998 '};
+const phDigits=v=>{let d=String(v).replace(/\D/g,'');d=d.startsWith('998')?d.slice(3):d.replace(/^0+/,'');return d.slice(0,9)};
+const phFmt=d=>{let s='+998 '+d.slice(0,2);if(d.length>2)s+=' '+d.slice(2,5);if(d.length>5)s+=' '+d.slice(5,7);if(d.length>7)s+=' '+d.slice(7,9);return s};
+let lastPh='';
+$('fp').addEventListener('input',e=>{const el=e.target;let d=phDigits(el.value);const pv=phDigits(lastPh);if(e.inputType==='deleteContentBackward'&&d===pv&&pv.length)d=pv.slice(0,-1);el.value=lastPh=phFmt(d)});
+$('fp').onfocus=()=>{if(!$('fp').value)$('fp').value=lastPh='+998 '};
 document.onkeydown=e=>{if(e.key==='Escape'){shut();$('lb').hidden=true;$('mp').hidden=true}if(!$('lb').hidden){if(e.key==='ArrowLeft')lbShow(lbi-1);if(e.key==='ArrowRight')lbShow(lbi+1)}};
 
 /* ---- xarita: jonli manzil tanlash (Google kaliti boʻlsa Google, boʻlmasa OpenStreetMap) ---- */
 let MX=null,mapP=null,pick=null,cur=null,rt,useG=!!CFG.googleKey;
+function gAddr(rs){
+  if(!rs||!rs.length)return '';
+  let r=null;for(const k of['street_address','premise','subpremise','route','neighborhood','sublocality','locality']){r=rs.find(x=>x.types&&x.types.includes(k));if(r)break}
+  r=r||rs[0];const c=r.address_components||[],g=k=>{const x=c.find(y=>y.types.includes(k));return x?x.long_name:''};
+  const parts=[[g('route'),g('street_number')||g('premise')].filter(Boolean).join(' '),g('neighborhood')||g('sublocality_level_1')||g('sublocality'),g('locality')||g('administrative_area_level_2')].filter(Boolean).filter((x,i,a)=>a.indexOf(x)===i);
+  const s=parts.length>=2?parts.join(', '):r.formatted_address||'';
+  return s.replace(/^[A-Z0-9]{4}\+[A-Z0-9]{2,}\s*,?\s*/,'').replace(/,\s*(Oʻzbekiston|O'zbekiston|Uzbekistan|Узбекистан)$/i,'').trim();
+}
 const CY={'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'j','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'x','ц':'ts','ч':'ch','ш':'sh','щ':'sh','ъ':'ʼ','ы':'i','ь':'','э':'e','ю':'yu','я':'ya','ў':'oʻ','қ':'q','ғ':'gʻ','ҳ':'h'};
 const tr=t=>String(t||'').replace(/^ул\.\s*/i,'').replace(/махалл[яи]/gi,'mahalla').replace(/[А-Яа-яЁёЎўҚқҒғҲҳ]/g,c=>{const l=c.toLowerCase(),x=CY[l]??c;return c===l?x:x.charAt(0).toUpperCase()+x.slice(1)});
 const shortAddr=d=>{const a=(d&&d.address)||{};return [a.road,a.house_number,a.neighbourhood||a.suburb,a.village||a.town||a.city].filter(Boolean).join(', ')};
@@ -305,7 +332,7 @@ function mkGoogle(){
   return {center:()=>{const c=m.getCenter();return{lat:c.lat(),lng:c.lng()}},set:(a,b,z)=>{m.setCenter({lat:a,lng:b});m.setZoom(z||17)},start:f=>m.addListener('dragstart',f),end:f=>m.addListener('idle',f),resize:()=>google.maps.event.trigger(m,'resize')};
 }
 async function addrOf(c){
-  if(useG){const r=await new google.maps.Geocoder().geocode({location:c,language:'uz'});return ((r.results[0]&&r.results[0].formatted_address)||'').replace(/^[A-Z0-9]{4}\+[A-Z0-9]{2,}\s*,?\s*/,'').replace(/,\s*(Oʻzbekiston|O'zbekiston|Uzbekistan|Узбекистан)$/i,'')}
+  if(useG){const r=await new google.maps.Geocoder().geocode({location:c,language:'uz'});return gAddr(r.results)}
   const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&accept-language=uz,ru&zoom=17&lat='+c.lat+'&lon='+c.lng);const d=await r.json();const st=shortAddr(d);if(d.address&&(d.address.road||d.address.house_number))return tr(st);return tr((d.display_name||st||'').split(',').map(x=>x.trim()).filter(Boolean).slice(0,3).join(', '));
 }
 function rev(){
@@ -333,22 +360,30 @@ async function openMap(){
   }else setTimeout(()=>{MX.resize();if(pick)MX.set(pick.lat,pick.lng,17)},80);
 }
 $('mapb').onclick=openMap;$('mpx').onclick=()=>{$('mp').hidden=true};$('locb').onclick=()=>MX&&locate();
-$('mpok').onclick=()=>{if(!cur)return;pick={lat:cur.lat,lng:cur.lng};if(cur.addr)$('fa').value=cur.addr;$('locok').hidden=false;$('mp').hidden=true};
-$('locx').onclick=()=>{pick=null;$('locok').hidden=true};
+$('mpok').onclick=()=>{if(!cur)return;pick={lat:cur.lat,lng:cur.lng};if(cur.addr)$('fa').value=cur.addr;$('locok').hidden=false;$('mp').hidden=true;calcDl()};
+async function calcDl(){
+  DL=null;DLerr='';$('er').textContent='';
+  if(pick){try{const r=await fetch(`/api/delivery?lat=${pick.lat}&lng=${pick.lng}`),d=await r.json();if(!r.ok)throw new Error(d.error);if(d.ok)DL={km:d.km,fee:d.fee};else DLerr=`Kechirasiz, bu manzil yetkazish hududidan tashqarida (eng uzoq masofa ${d.max} km)`}catch(e){DLerr='Yetkazish narxini hisoblab boʻlmadi. Joylashuvni qayta belgilang'}}
+  draw();
+}
+$('dlv').onclick=()=>{if(!DL)$('mapb').click()};
+$('locx').onclick=()=>{pick=null;$('locok').hidden=true;DL=null;DLerr='';draw()};
 function done(o,id){
   $('ok').innerHTML=`<div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div><h2>Buyurtmangiz qabul qilindi</h2><div class="no">№ ${id}</div>
-<div class="rc">${o.items.map(i=>`<div class="r"><span>${esc(i.n)} × ${i.q}</span><span>${fmt(i.p*i.q)}</span></div>`).join('')}<div class="r tt"><span>Jami</span><span>${fmt(o.total)}</span></div><div class="r"><span>Toʻlov</span><span>Naqd pul, kuryerga</span></div><div class="r"><span>Manzil</span><span>${esc(o.addr)}</span></div></div>
-${INIT?'<p>Buyurtma holati <b style="color:#fff">«Mening buyurtmalarim»</b> boʻlimida va bot xabarlarida jonli yangilanib turadi.</p><button class="go" id="trkb">📦 Buyurtmani kuzatish</button>':`<p>Operatorimiz tez orada <b style="color:#fff">${esc(o.phone)}</b> raqamiga bogʻlanib, buyurtmani tasdiqlaydi.</p>`}${CFG.phone?`<p>Savollar uchun: <a href="tel:${esc(CFG.phone)}" style="color:var(--y)">${esc(tel)}</a></p>`:''}<button class="go" id="again">Yangi buyurtma</button>`;
+<div class="rc">${o.items.map(i=>`<div class="r"><span>${esc(i.n)} × ${i.q}</span><span>${fmt(i.p*i.q)}</span></div>`).join('')}${o.fee?`<div class="r"><span>Yetkazish${o.km?` (${o.km} km)`:''}</span><span>${fmt(o.fee)}</span></div>`:''}<div class="r tt"><span>Jami</span><span>${fmt(o.total)}</span></div><div class="r"><span>Toʻlov</span><span>Naqd pul, kuryerga</span></div><div class="r"><span>Manzil</span><span>${esc(o.addr)}</span></div></div>
+${INIT?'<p>Buyurtma holati <b style="color:#fff">«Mening buyurtmalarim»</b> boʻlimida va bot xabarlarida jonli yangilanib turadi.</p><button class="go" id="trkb">Buyurtmani kuzatish</button>':`<p>Operatorimiz tez orada <b style="color:#fff">${esc(o.phone)}</b> raqamiga bogʻlanib, buyurtmani tasdiqlaydi.</p>`}${CFG.phone?`<p>Savollar uchun: <a href="tel:${esc(CFG.phone)}" style="color:var(--y)">${esc(tel)}</a></p>`:''}<button class="go" id="again">Yangi buyurtma</button>`;
   $('body').hidden=true;$('ok').hidden=false;$('cart').scrollTop=0;
 }
 $('go').onclick=async()=>{
-  const b=$('go');b.disabled=true;$('er').textContent='';
+  const b=$('go');$('er').textContent='';if(phDigits($('fp').value).length!==9){$('er').textContent='Telefon raqamini toʻliq kiriting: +998 XX XXX XX XX';$('fp').focus();return}
+  if(!pick||!DL){$('er').textContent=DLerr||'Yetkazish narxini hisoblash uchun joylashuvingizni xaritada belgilang';if(!pick)$('mapb').click();return}
+  b.disabled=true;
   const o={name:$('fn').value,phone:$('fp').value.replace(/^(\+998\s*)+/,'+998 '),addr:$('fa').value.trim()||(pick?'Xaritada belgilangan nuqta':''),note:$('fc').value,hp:$('hp').value,pay:'Naqd',lat:pick?pick.lat:null,lng:pick?pick.lng:null,items:ids().map(i=>({id:+i,q:cart[i]}))};
   const snap={phone:o.phone.trim(),addr:o.addr.trim(),total:tot(),items:ids().map(i=>({n:by(i).n,q:cart[i],p:by(i).p}))};
   try{
     const r=await fetch('/api/order',{method:'POST',headers:{'content-type':'application/json',...tgH()},body:JSON.stringify(o)});
     const d=await r.json();if(!r.ok)throw new Error(d.error||'Xatolik');
-    cart={};keep();draw();done(snap,d.id);pick=null;$('locok').hidden=true;if(INIT){hap();loadMy()}
+    cart={};DL=null;DLerr='';keep();draw();done({...snap,total:d.total||snap.total,fee:d.fee||0,km:d.km||0},d.id);pick=null;$('locok').hidden=true;if(INIT){hap();loadMy()}
   }catch(e){$('er').textContent=e.message||'Tarmoq xatosi, qayta urinib koʻring'}
   b.disabled=false;
 };
@@ -359,8 +394,8 @@ const inTG=!!INIT||!!window.TelegramWebviewProxy;
 const tgH=()=>INIT?{'x-tg-init':INIT}:{};
 const hm=t=>t?new Date(t).toLocaleTimeString('ru-RU',{timeZone:'Asia/Tashkent',hour:'2-digit',minute:'2-digit'}):'';
 const dmy=t=>new Date(t).toLocaleDateString('ru-RU',{timeZone:'Asia/Tashkent',day:'2-digit',month:'2-digit'});
-const SLB=['Yuborildi','Tayyorlanmoqda','Yoʻlda','Yetkazildi'],SNM=['Yangi','Tayyorlanmoqda','Yoʻlda','Yetkazildi','Bekor qilindi'];
-const lbl=o=>o.st===1?['','Qabul qilindi','Tayyorlanmoqda','Tayyor'][o.kp||1]:SNM[o.st];
+const SLB=['Yuborildi','Tayyorlanmoqda','Yoʻlda','Yetkazildi'];
+const lbl=o=>o.st===1?['','Qabul qilindi','Tayyorlanmoqda','Tayyor'][o.kp||1]:['Yuborildi','','Yoʻlda','Yetkazildi','Bekor qilindi'][o.st];
 const hap=t=>{try{TW.HapticFeedback.notificationOccurred(t||'success')}catch(e){}};
 const tgUserInfo=()=>(TW&&TW.initDataUnsafe&&TW.initDataUnsafe.user)||{};
 const note=o=>['Buyurtmangiz yuborildi. Tasdiqlanishini kutyapmiz.',
@@ -371,23 +406,25 @@ function stepper(o){
   const T=[o.t,o.ts.acc,o.ts.way,o.ts.dl];
   return '<div class="axs">'+SLB.map((s,k)=>`<div class="${o.st===3||k<o.st?'d':k===o.st?'c':''}"><i></i>${s}<small>${hm(T[k])}</small></div>`).join('')+'</div>';
 }
+const IX='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
 function renderAx(){
   if(!MY)return;
   const me=MY.me,u=tgUserInfo(),name=[me.fn||u.first_name,me.ln||u.last_name].filter(Boolean).join(' ')||'Mehmon',un=me.un||u.username,live=MY.orders.some(o=>o.st<3);
-  const card=o=>`<div class="axo ${o.st<3?'act':''}"><div class="axt"><b>№ ${o.id}</b><span>${dmy(o.t)}, ${hm(o.t)}</span></div>${o.st===4?'<div class="axc">Buyurtma bekor qilindi</div>':stepper(o)+`<p class="axn">${esc(note(o))}</p>`}<div class="axi">${o.items.map(i=>esc(i.n)+' × '+i.q).join(', ')}</div><div class="axf"><span>${esc(o.addr)}</span><b>${fmt(o.total)}</b></div></div>`;
+  const card=o=>`<div class="axo ${o.st<3?'act':''} ${o.st===4?'x':''}"><div class="axt"><b>№ ${o.id}</b><span>${dmy(o.t)} · ${hm(o.t)}</span></div><div class="axg">${lbl(o)}</div>${o.st===4?'':stepper(o)}<p class="axn" ${o.st===4?'style="margin-top:12px"':''}>${esc(note(o))}</p><div class="axi">${o.items.map(i=>esc(i.n)+' × '+i.q).join(' · ')}</div>${o.fee?`<div class="axi">Yetkazish${o.km?` (${o.km} km)`:''}: ${o.fee.toLocaleString('ru-RU')} soʻm</div>`:''}<div class="axf"><span>${esc(o.addr)}</span><b>${o.total.toLocaleString('ru-RU')}<small>soʻm</small></b></div></div>`;
   $('axb').innerHTML=`<div class="axu"><div class="av">${esc(name.charAt(0).toUpperCase())}</div><div><b>${esc(name)}</b><small>${un?'@'+esc(un)+' · ':''}ID ${me.id}</small></div></div>
-<div class="axk"><div><b>${me.n}</b><span>Buyurtmalar</span></div><div><b>${fmt(me.s)}</b><span>Yetkazilgan summa</span></div></div>
-<div class="axt2">Mening buyurtmalarim${live?'<small><i class="lv"></i>jonli</small>':''}</div>${MY.orders.map(card).join('')||'<div class="axe">Hozircha buyurtma yoʻq.<br>Menyudan taom tanlang, holatini shu yerda kuzatasiz.</div>'}`;
+<div class="axk"><div><span>Buyurtmalar</span><b>${me.n}</b></div><div><span>Yetkazilgan</span><b>${me.s.toLocaleString('ru-RU')}<small>soʻm</small></b></div></div>
+<div class="axt2">Mening buyurtmalarim${live?'<small><i class="lv"></i>Jonli</small>':''}</div>${MY.orders.map(card).join('')||'<div class="axe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="6" width="12" height="12"/><rect x="6" y="6" width="12" height="12" transform="rotate(45 12 12)"/></svg>Hozircha buyurtma yoʻq.<br>Menyudan taom tanlang, holatini shu yerda kuzatasiz.</div>'}`;
 }
 function renderTrk(){
-  const o=MY&&MY.orders.find(x=>x.st<3),b=$('trk');
+  const o=MY&&MY.orders.find(x=>x.st<3),b=$('trk'),p=$('pbtn');
+  if(p)p.classList.toggle('dot',!!o);
   if(!o||axOpen){b.hidden=true;return}
-  b.hidden=false;b.innerHTML=`<i class="lv"></i><div><b>Buyurtma № ${o.id} · ${lbl(o)}</b><small>${esc(note(o))}</small></div><em>Kuzatish ›</em>`;
+  b.hidden=false;b.innerHTML=`<i class="lv"></i><div><b>Buyurtma № ${o.id} · ${lbl(o)}</b><small>${esc(note(o))}</small></div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>`;
 }
 function prefill(me){
   const u=tgUserInfo();
   if(!$('fn').value)$('fn').value=[me.fn||u.first_name,me.ln||u.last_name].filter(Boolean).join(' ');
-  if(!$('fp').value&&me.ph)$('fp').value=me.ph;
+  if(!$('fp').value&&me.ph&&phDigits(me.ph).length===9)$('fp').value=lastPh=phFmt(phDigits(me.ph));
   if(!$('fa').value&&me.ad)$('fa').value=me.ad;
 }
 function schedule(){clearTimeout(myT);if(!INIT||document.hidden)return;if(axOpen||(MY&&MY.orders.some(o=>o.st<3)))myT=setTimeout(loadMy,axOpen?5000:15000)}
@@ -414,10 +451,11 @@ function closeAx(){
 function initApp(){
   if(!INIT)return;
   document.body.classList.add('tg');
-  const cb=$('cbtn'),w=document.createElement('div'),u=tgUserInfo(),p=document.createElement('button');
+  const cb=$('cbtn'),w=document.createElement('div'),p=document.createElement('button');
   w.className='hr';cb.parentNode.insertBefore(w,cb);
-  p.id='pbtn';p.className='pbtn';p.innerHTML=`<i>${esc((u.first_name||'👤').charAt(0).toUpperCase())}</i><span>Profil</span>`;
-  w.append(p,cb);p.onclick=openAx;$('axx').onclick=closeAx;$('trk').onclick=openAx;
+  p.id='pbtn';p.className='pbtn';p.setAttribute('aria-label','Profil');
+  p.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.6 20c.9-3.7 3.7-5.6 7.4-5.6s6.5 1.9 7.4 5.6"/></svg>';
+  w.append(p,cb);p.onclick=openAx;$('axx').innerHTML=IX;$('axx').onclick=closeAx;$('trk').onclick=openAx;
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadMy()});
   loadMy().then(()=>{if(/[?&]open=orders/.test(location.search))openAx()});
 }
@@ -426,7 +464,7 @@ fetch('/api/slides').then(r=>r.json()).then(buildSlides).catch(()=>buildSlides([
 function buildAbout(a){const ab=$('abox'),img=a&&a.img;ab.className='ab'+(img?'':' logo');ab.innerHTML=`<img src="${img?esc(img):'/logo.png'}" alt="Marakand cafe"${img?' loading="lazy"':''}>`}
 fetch('/api/about').then(r=>r.json()).then(buildAbout).catch(()=>buildAbout(null));
 fetch('/api/gallery').then(r=>r.json()).then(buildGallery).catch(()=>buildGallery([]));
-fetch('/api/menu').then(r=>r.json()).then(m=>{menu=m;draw()}).catch(()=>{$('grid').innerHTML='<p>Menyu yuklanmadi. Sahifani yangilang.</p>'});
+Promise.all([fetch('/api/menu').then(r=>r.json()),fetch('/api/cats').then(r=>r.json()).catch(()=>[])]).then(([m,c])=>{menu=m;ORD=Array.isArray(c)?c:[];draw()}).catch(()=>{$('grid').innerHTML='<p>Menyu yuklanmadi. Sahifani yangilang.</p>'});
 </script>
 </body>
 </html>
