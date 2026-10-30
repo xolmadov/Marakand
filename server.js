@@ -6,7 +6,7 @@ const DIR=E.DATA_DIR||__dirname,DB=path.join(DIR,'data.json'),UP=path.join(DIR,'
 // Supabase (ixtiyoriy): SUPABASE_URL + SUPABASE_KEY berilsa, ma'lumot va rasmlar Supabase'da saqlanadi
 const SB=E.SUPABASE_URL&&E.SUPABASE_KEY?{u:E.SUPABASE_URL.replace(/\/+$/,''),k:E.SUPABASE_KEY,b:E.SUPABASE_BUCKET||'uploads'}:null;
 if(!SB)fs.mkdirSync(UP,{recursive:true});
-const KEEP=E.ORDER_KEEP_DAYS!==undefined&&E.ORDER_KEEP_DAYS!==''?Math.max(0,+E.ORDER_KEEP_DAYS||0):30;
+const KEEP=E.ORDER_KEEP_DAYS!==undefined&&E.ORDER_KEEP_DAYS!==''?Math.max(0,+E.ORDER_KEEP_DAYS||0):3;
 // Mini App havolasi (https): PUBLIC_URL yoki Render bergan RENDER_EXTERNAL_URL. Chatlar: admin va (ixtiyoriy) kuryerlar
 const PURL=(E.PUBLIC_URL||E.RENDER_EXTERNAL_URL||'').trim().replace(/\/+$/,''),WA=/^https:\/\//.test(PURL)?PURL:'';
 const CH_A=String(E.CHAT_ID||''),CH_C=E.COURIER_CHAT_ID&&String(E.COURIER_CHAT_ID)!==CH_A?String(E.COURIER_CHAT_ID):'';
@@ -27,7 +27,22 @@ const seedSlides=[
 {id:3,a:1,k:'Qulay toʻlov',h:'Toʻlov *naqd pul* bilan',p:'Oldindan hech narsa toʻlamaysiz. Taomni qabul qilganingizda kuryerga naqd toʻlaysiz.',b:'Menyuga oʻtish',l:'#menu',i1:'/photos/p1.jpg',i2:'/photos/p2.jpg',ic:'cash',bt:'Naqd pul',bs:'Kuryerga toʻlaysiz'},
 {id:4,a:1,k:'Kofe olib ketish',h:'Kafemizga *xush kelibsiz*',p:'Qulay muhit, serviz dasturxon va mehmondoʻst xizmat. Kofeni oʻzingiz bilan olib ketishingiz ham mumkin.',b:'Manzilimiz',l:'#contact',i1:'/photos/p1.jpg',i2:'/photos/p3.jpg',ic:'clock',bt:'07:00 – 23:00',bs:'Ish vaqti'}];
 const seedGal=[{id:1,img:'/photos/p1.jpg',t:''},{id:2,img:'/photos/p3.jpg',t:''},{id:3,img:'/photos/p2.jpg',t:''}];
-let db={menu:seedMenu,orders:[],slides:seedSlides,gallery:seedGal,about:{img:'/photos/p1.jpg'},users:{},stats:{},lastId:1000};
+// ---- kafe maʼlumotlari (admin paneldan oʻzgartiriladi) va menyu kategoriyalari ----
+const SET_DEF={phone:'1414',address:'Poytugʻ, Alisher Navoiy MFY, Alisher Navoiy 2-berk koʻchasi, 3',hours:'07:00 – 23:00',rating:'4.2 · Yandex Xaritalar',telegram:'',instagram:'https://www.instagram.com/marakand_poytug',googleKey:'',lat:40.892109,lng:72.252442,delFirst:5000,delKm:2500,delMax:0,roadK:1.3};
+const urlOk=s=>/^https?:\/\/[^\s<>"']{3,200}$/i.test(String(s||'').trim())?String(s).trim():'';
+const numIn=(v,min,max,d)=>{const x=v===''||v==null?NaN:+v;return Number.isFinite(x)&&x>=min&&x<=max?x:d};
+const cleanSettings=s=>{s=s||{};return{phone:cl(s.phone,30)||SET_DEF.phone,address:cl(s.address,200)||SET_DEF.address,hours:cl(s.hours,40)||SET_DEF.hours,rating:cl(s.rating,60),telegram:urlOk(s.telegram),instagram:urlOk(s.instagram),googleKey:cl(s.googleKey,80).replace(/[^\w-]/g,''),lat:numIn(s.lat,-90,90,SET_DEF.lat),lng:numIn(s.lng,-180,180,SET_DEF.lng),delFirst:Math.round(numIn(s.delFirst,0,1e6,SET_DEF.delFirst)),delKm:Math.round(numIn(s.delKm,0,1e6,SET_DEF.delKm)),delMax:numIn(s.delMax,0,200,0),roadK:numIn(s.roadK,1,3,SET_DEF.roadK)}};
+const cleanCats=a=>[...new Set((Array.isArray(a)?a:[]).map(x=>cl(x,30)).filter(Boolean))].slice(0,30);
+let db={menu:seedMenu,cats:cleanCats(seedMenu.map(m=>m.c)),settings:{},orders:[],slides:seedSlides,gallery:seedGal,about:{img:'/photos/p1.jpg'},users:{},stats:{},bc:[],lastId:1000};
+const cfgFull=()=>({...SET_DEF,...db.settings});
+const cfgPub=()=>{const c=cfgFull();return{phone:c.phone,address:c.address,hours:c.hours,rating:c.rating,telegram:c.telegram,instagram:c.instagram,googleKey:c.googleKey||cl(E.GOOGLE_MAPS_KEY,80).replace(/[^\w-]/g,''),lat:c.lat,lng:c.lng,delFirst:c.delFirst,delKm:c.delKm}};
+// Yetkazish narxi: kafedan mijozgacha masofa (toʻgʻri chiziq x yoʻl koeffitsienti), boshlangan har km hisoblanadi
+const hav=(a,b,c,d)=>{const r=x=>x*Math.PI/180,p=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 12742*Math.asin(Math.sqrt(p))};
+function calcDelivery(lat,lng){
+  const c=cfgFull(),km=Math.round(hav(c.lat,c.lng,lat,lng)*c.roadK*10)/10;
+  if(c.delMax>0&&km>c.delMax)return{ok:false,km,max:c.delMax};
+  const units=Math.max(1,Math.ceil(km-1e-9));return{ok:true,km,units,fee:c.delFirst+(units-1)*c.delKm};
+}
 // ---- Supabase (REST, kutubxonasiz) ----
 const sbh=x=>({apikey:SB.k,...(SB.k.startsWith('sb_')?{}:{authorization:'Bearer '+SB.k}),...x});
 async function sbFetch(url,opt,tries=3){let err;for(let i=0;i<tries;i++){try{const r=await fetch(url,opt);if(r.ok||r.status===409)return r;err=new Error('Supabase '+r.status+': '+(await r.text()).slice(0,180))}catch(e){err=e}await new Promise(s=>setTimeout(s,400*(i+1)))}throw err}
@@ -41,7 +56,7 @@ let statsDirty=false;
 function fold(o){
   if(!o.done||(o.st!==3&&o.st!==4))return;
   const k=dkey(o.done),d=db.stats[k]||(db.stats[k]={n:0,s:0,c:0,it:{}});
-  if(o.st===3){d.n++;d.s+=o.total;for(const i of o.items){const x=d.it[i.n]||(d.it[i.n]=[0,0]);x[0]+=i.q;x[1]+=i.p*i.q}}else d.c++;
+  if(o.st===3){d.n++;d.s+=(o.sub!=null?o.sub:o.total);d.f=(d.f||0)+(o.fee||0);for(const i of o.items){const x=d.it[i.n]||(d.it[i.n]=[0,0]);x[0]+=i.q;x[1]+=i.p*i.q}}else d.c++;
   statsDirty=true;
 }
 async function purge(){
@@ -54,16 +69,16 @@ async function purge(){
 // Davr boʻyicha statistika (sanalar Toshkent vaqti bilan, YYYY-MM-DD, ikkala chegara ham kiradi)
 function statsRange(from,to){
   const days=new Map(),top=new Map(),iso=t=>new Date(t).toISOString().slice(0,10);
-  for(let t=Date.parse(from),e=Date.parse(to);t<=e;t+=864e5)days.set(iso(t),{d:iso(t),n:0,s:0,c:0});
-  const put=(k,n,s,c)=>{const d=days.get(k);if(d){d.n+=n;d.s+=s;d.c+=c}};
+  for(let t=Date.parse(from),e=Date.parse(to);t<=e;t+=864e5)days.set(iso(t),{d:iso(t),n:0,s:0,c:0,f:0});
+  const put=(k,n,s,c,f=0)=>{const d=days.get(k);if(d){d.n+=n;d.s+=s;d.c+=c;d.f+=f}};
   const dish=(name,q,s)=>{const x=top.get(name)||{n:name,q:0,s:0};x.q+=q;x.s+=s;top.set(name,x)};
-  for(const[k,d]of Object.entries(db.stats))if(days.has(k)){put(k,d.n,d.s,d.c);for(const[name,v]of Object.entries(d.it||{}))dish(name,v[0],v[1])}
+  for(const[k,d]of Object.entries(db.stats))if(days.has(k)){put(k,d.n,d.s,d.c,d.f||0);for(const[name,v]of Object.entries(d.it||{}))dish(name,v[0],v[1])}
   for(const o of db.orders){
     if(!o.done)continue;const k=dkey(o.done);if(!days.has(k))continue;
-    if(o.st===3){put(k,1,o.total,0);for(const i of o.items)dish(i.n,i.q,i.p*i.q)}else if(o.st===4)put(k,0,0,1);
+    if(o.st===3){put(k,1,o.sub!=null?o.sub:o.total,0,o.fee||0);for(const i of o.items)dish(i.n,i.q,i.p*i.q)}else if(o.st===4)put(k,0,0,1);
   }
-  const arr=[...days.values()],n=arr.reduce((a,d)=>a+d.n,0),s=arr.reduce((a,d)=>a+d.s,0),c=arr.reduce((a,d)=>a+d.c,0);
-  return{days:arr,tot:{n,s,c,avg:n?Math.round(s/n):0},top:[...top.values()].sort((a,b)=>b.q-a.q||b.s-a.s).slice(0,8)};
+  const arr=[...days.values()],n=arr.reduce((a,d)=>a+d.n,0),s=arr.reduce((a,d)=>a+d.s,0),c=arr.reduce((a,d)=>a+d.c,0),f=arr.reduce((a,d)=>a+d.f,0);
+  return{days:arr,tot:{n,s,c,f,avg:n?Math.round(s/n):0},top:[...top.values()].sort((a,b)=>b.q-a.q||b.s-a.s).slice(0,8)};
 }
 const saveLocal=()=>{fs.writeFileSync(DB+'.tmp',JSON.stringify(db));fs.renameSync(DB+'.tmp',DB)};
 const saveK=async k=>{if(SB)await sbPut(k,db[k]);else saveLocal()};
@@ -81,7 +96,7 @@ const tgOn=()=>!!(E.BOT_TOKEN&&CH_A),BOT={un:'',mode:''};
 const TGS=crypto.createHash('sha256').update('wh|'+(E.BOT_TOKEN||'')+'|'+SEC).digest('hex').slice(0,48);
 async function tgCall(method,body){
   const r=await fetch(`${TG}/bot${E.BOT_TOKEN}/${method}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body||{}),signal:AbortSignal.timeout(method==='getUpdates'?40000:10000)});
-  const j=await r.json().catch(()=>({}));if(!j.ok)throw new Error(j.description||'HTTP '+r.status);return j.result}
+  const j=await r.json().catch(()=>({}));if(!j.ok){const e=new Error(j.description||'HTTP '+r.status);e.retry=(j.parameters||{}).retry_after;throw e}return j.result}
 const SN=['Yangi','Tayyorlanmoqda','Yoʻlda','Yetkazildi','Bekor qilindi'],SE=['🆕','🍳','🛵','✅','❌'];
 const kst=o=>{const L=o.log||[];return L.some(e=>e.k==='rdy')?3:L.some(e=>e.k==='cook')?2:o.st>=1?1:0}; // oshxona: 1 qabul, 2 tayyorlanmoqda, 3 tayyor
 const lab=o=>o.st===1?['','Qabul qilindi','Tayyorlanmoqda','Tayyor'][kst(o)]:SN[o.st];
@@ -92,7 +107,7 @@ const RT={a:' (admin)',c:' (kuryer)',p:' (panel)'},LG={acc:'✅ Qabul qildi',coo
 // Buyurtma xabari: ma'lumot + kim nima qilgani (tugmalar tepasida)
 function msgText(o){
   const who=o.uid?`<a href="tg://user?id=${o.uid}">${h(o.name)}</a>`:h(o.name);
-  let t=`${emo(o)} <b>Buyurtma #${o.id}</b> · <i>${lab(o)}</i>\n👤 ${who}\n📞 ${h(o.phone)}\n📍 ${h(o.addr)}\n━━━━━━━━\n`+o.items.map(i=>`• ${h(i.n)} × ${i.q} — ${(i.p*i.q).toLocaleString('ru-RU')}`).join('\n')+`\n━━━━━━━━\n💰 <b>Jami: ${o.total.toLocaleString('ru-RU')} soʻm</b> (${o.pay})`+(o.note?`\n💬 ${h(o.note)}`:'')+(o.lat!=null?`\n🗺 <a href="https://yandex.uz/maps/?pt=${o.lng},${o.lat}&amp;z=17&amp;l=map">Yandex</a> · <a href="https://www.google.com/maps?q=${o.lat},${o.lng}">Google</a>`:'');
+  let t=`${emo(o)} <b>Buyurtma #${o.id}</b> · <i>${lab(o)}</i>\n👤 ${who}\n📞 ${h(o.phone)}\n📍 ${h(o.addr)}\n━━━━━━━━\n`+o.items.map(i=>`• ${h(i.n)} × ${i.q} — ${(i.p*i.q).toLocaleString('ru-RU')}`).join('\n')+(o.fee?`\n🚚 Yetkazish${o.km?` (${o.km} km)`:''} — ${o.fee.toLocaleString('ru-RU')}`:'')+`\n━━━━━━━━\n💰 <b>Jami: ${o.total.toLocaleString('ru-RU')} soʻm</b> (${o.pay})`+(o.note?`\n💬 ${h(o.note)}`:'')+(o.lat!=null?`\n🗺 <a href="https://yandex.uz/maps/?pt=${o.lng},${o.lat}&amp;z=17&amp;l=map">Yandex</a> · <a href="https://www.google.com/maps?q=${o.lat},${o.lng}">Google</a>`:'');
   const L=(o.log||[]).filter(e=>LG[e.k]);
   if(L.length)t+='\n━━━━━━━━\n'+L.map(e=>`${LG[e.k]}: <b>${h(e.by||'')}</b>${RT[e.r]||''} · ${tm(e.t)}`).join('\n');
   return t}
@@ -203,7 +218,11 @@ async function onUpdate(u){
   if(u.callback_query)return onCb(u.callback_query);
   const m=u.message;if(!m||!m.text)return;const cmd=m.text.split(/[\s@]/)[0];
   if(cmd==='/id')return tgCall('sendMessage',{chat_id:m.chat.id,text:`Chat ID: <code>${m.chat.id}</code>`,parse_mode:'HTML'}).catch(()=>{});
-  if(cmd==='/start'&&m.chat.type==='private')return tgCall('sendMessage',{chat_id:m.chat.id,text:'🍽 <b>Marakand cafe</b>\nMilliy taomlar: osh, lagʻmon, manti, shashlik.\nMenyuni ochib buyurtma bering, holatini esa shu yerda kuzatib boring.',parse_mode:'HTML',...(WA?{reply_markup:{inline_keyboard:[[{text:'🍽 Menyuni ochish',web_app:{url:WA}}]]}}:{})}).catch(()=>{});
+  if(cmd==='/start'&&m.chat.type==='private'){
+    const f=m.from||{};if(f.id){try{const x=touchUser(f);if(x.bl){delete x.bl;saveUser(x)}}catch(e){}}
+    const first=h(cl(f.first_name||f.username||'doʻstim',40));
+    return tgCall('sendMessage',{chat_id:m.chat.id,parse_mode:'HTML',text:`Assalomu alaykum, <b>${first}</b>! 👋\n\n<b>Marakand cafe</b> botiga xush kelibsiz!\nBizda barcha turdagi mazali milliy taomlarni topishingiz mumkin 🍽`,...(WA?{reply_markup:{inline_keyboard:[[{text:'🍽 Menyuni ochish',web_app:{url:WA}}],[{text:'📦 Buyurtmalarim',web_app:{url:WA+'/?open=orders'}}]]}}:{})}).catch(()=>{});
+  }
 }
 async function poll(){
   let off=0;for(;;){
@@ -242,7 +261,85 @@ function touchUser(u,noSave){
   else if(x.fn!==fn||x.ln!==ln||x.un!==un||n-x.t1>36e5){Object.assign(x,{fn,ln,un,lc,t1:n});ch=true}
   if(ch&&!noSave)saveUser(x);return x}
 function userDelivered(o,back){const x=db.users[o.uid];if(x){x.s=Math.max(0,x.s+(back?-o.total:o.total));saveUser(x)}}
-const pub=o=>{const g=k=>((o.log||[]).find(e=>e.k===k)||{}).t||0;return{id:o.id,t:o.t,st:o.st,total:o.total,items:o.items,addr:o.addr,pay:o.pay,kp:o.st===1?kst(o):0,ts:{acc:g('acc'),cook:g('cook'),rdy:g('rdy'),way:g('way'),dl:g('dl'),cx:g('cx')},cr:o.cr?String(o.cr.name).split(' ')[0]:''}};
+const pub=o=>{const g=k=>((o.log||[]).find(e=>e.k===k)||{}).t||0;return{id:o.id,t:o.t,st:o.st,total:o.total,sub:o.sub!=null?o.sub:o.total,fee:o.fee||0,km:o.km||0,items:o.items,addr:o.addr,pay:o.pay,kp:o.st===1?kst(o):0,ts:{acc:g('acc'),cook:g('cook'),rdy:g('rdy'),way:g('way'),dl:g('dl'),cx:g('cx')},cr:o.cr?String(o.cr.name).split(' ')[0]:''}};
+// ---- Xabar yuborish: admin botdagi mijozlarga matn / rasm / video yuboradi ----
+const os=require('os'),sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const BCDIR=path.join(os.tmpdir(),'marakand-bc'),BC_MAX=48*1048576,BCF=new Map(),bc={job:null};
+try{fs.mkdirSync(BCDIR,{recursive:true})}catch(e){}
+setInterval(()=>{const n=Date.now();for(const[k,f]of BCF)if(n-f.t>3*36e5){BCF.delete(k);fs.unlink(f.path,()=>{})}},9e5).unref();
+const kindOf=(mime,size)=>/^image\/gif$/i.test(mime)?'animation':/^image\/(jpeg|png|webp)$/i.test(mime)?(size<=10*1048576?'photo':'doc'):/^video\/(mp4|quicktime)$/i.test(mime)?'video':'doc';
+async function tgForm(method,fields,file){
+  const fd=new FormData();for(const[k,v]of Object.entries(fields))fd.append(k,typeof v==='object'?JSON.stringify(v):String(v));
+  fd.append(file.field,new Blob([file.buf],{type:file.mime}),file.name);
+  const r=await fetch(`${TG}/bot${E.BOT_TOKEN}/${method}`,{method:'POST',body:fd,signal:AbortSignal.timeout(180000)});
+  const j=await r.json().catch(()=>({}));if(!j.ok){const e=new Error(j.description||'HTTP '+r.status);e.retry=(j.parameters||{}).retry_after;throw e}return j.result;
+}
+const BM={photo:['sendPhoto','photo'],video:['sendVideo','video'],animation:['sendAnimation','animation'],doc:['sendDocument','document']};
+const fileIdOf=(kind,r)=>kind==='photo'?r.photo[r.photo.length-1].file_id:kind==='video'?r.video.file_id:kind==='animation'?(r.animation||r.document).file_id:r.document.file_id;
+// Bitta chatga xabar yuboradi. Fayl birinchi marta yuklanadi, keyin Telegram file_id si bilan qayta ishlatiladi
+async function bcSendOne(chat,spec){
+  const mk=spec.menu&&WA?{inline_keyboard:[[{text:'🍽 Menyuni ochish',web_app:{url:WA}}]]}:null;
+  if(!spec.file)return tgCall('sendMessage',{chat_id:chat,text:spec.text,...(mk?{reply_markup:mk}:{})});
+  const cap=spec.text&&spec.text.length<=1024?spec.text:'';
+  const send=async kind=>{
+    const[method,field]=BM[kind],base={chat_id:chat,...(cap?{caption:cap}:{}),...(mk&&(!spec.text||cap)?{reply_markup:mk}:{}),...(kind==='video'?{supports_streaming:true}:{})};
+    if(spec.tgid&&spec.kind===kind)return tgCall(method,{...base,[field]:spec.tgid});
+    const buf=await fs.promises.readFile(spec.file.path),r=await tgForm(method,base,{field,buf,mime:spec.file.mime,name:spec.file.name});
+    spec.tgid=fileIdOf(kind,r);spec.kind=kind;return r;
+  };
+  try{await send(spec.kind)}catch(e){
+    if(spec.kind==='photo'&&/PHOTO_|dimension|too big/i.test(e.message)){spec.tgid='';await send('doc')}else throw e;
+  }
+  if(spec.text&&!cap)await tgCall('sendMessage',{chat_id:chat,text:spec.text,...(mk?{reply_markup:mk}:{})});
+}
+async function bcRun(job,spec,recips){
+  for(const x of recips){
+    if(job.cancel)break;
+    for(let tries=0;;){
+      try{await bcSendOne(x.id,spec);job.ok++;break}
+      catch(e){
+        if(e.retry&&tries++<2){await sleep((e.retry+1)*1000);continue}
+        if(/blocked|deactivated|chat not found|forbidden|initiate conversation/i.test(e.message)){job.bl++;x.bl=Date.now();saveUser(x)}else{job.fail++;job.err=e.message}
+        break;
+      }
+    }
+    job.done++;await sleep(60);
+  }
+  job.state=job.cancel?'cancelled':'done';job.end=Date.now();
+  if(spec.file){BCF.delete(spec.file.fid);fs.unlink(spec.file.path,()=>{})}
+  db.bc.unshift({id:job.id,t:job.t,end:job.end,state:job.state,total:job.total,ok:job.ok,fail:job.fail,bl:job.bl,text:job.text,kind:job.kind});db.bc=db.bc.slice(0,20);
+  try{await saveK('bc')}catch(e){console.error('Xabarlar tarixini saqlash xatosi:',e.message)}
+}
+async function bcUpload(req,res){
+  const q=new URL(req.url,'http://x').searchParams,name=cl(q.get('name')||'fayl',80).replace(/[^\w.\- ]/g,'_')||'fayl',mime=cl(q.get('mime')||'application/octet-stream',80);
+  if((+req.headers['content-length']||0)>BC_MAX)return send(res,413,{error:'Fayl 48 MB dan katta boʻlmasligi kerak'});
+  const fid=crypto.randomBytes(12).toString('hex'),fp=path.join(BCDIR,fid);let n=0;
+  try{
+    await new Promise((ok,no)=>{const ws=fs.createWriteStream(fp);req.on('data',c=>{n+=c.length;if(n>BC_MAX){no(new Error('big'));req.unpipe(ws);ws.destroy();req.resume()}});req.pipe(ws);ws.on('finish',ok);ws.on('error',no);req.on('error',no)});
+  }catch(e){fs.unlink(fp,()=>{});return send(res,e.message==='big'?413:500,{error:e.message==='big'?'Fayl 48 MB dan katta boʻlmasligi kerak':'Faylni qabul qilib boʻlmadi'})}
+  if(!n){fs.unlink(fp,()=>{});return send(res,400,{error:'Fayl boʻsh'})}
+  const kind=kindOf(mime,n);BCF.set(fid,{fid,path:fp,name,mime,kind,size:n,t:Date.now()});
+  return send(res,200,{fid,name,kind,size:n});
+}
+const bcInfo=()=>({audience:Object.values(db.users).filter(x=>!x.bl).length,total:Object.keys(db.users).length,job:bc.job,hist:db.bc,bot:!!E.BOT_TOKEN,menu:!!WA,admin:!!CH_A});
+async function bcStart(b,res){
+  if(!E.BOT_TOKEN)return send(res,400,{error:'Telegram bot ulanmagan'});
+  if(bc.job&&bc.job.state==='running')return send(res,409,{error:'Hozir boshqa xabar yuborilmoqda. Tugashini kuting'});
+  const text=String(b.text||'').trim();if(text.length>4096)return send(res,400,{error:'Matn 4096 belgidan oshmasligi kerak'});
+  const f=b.fid?BCF.get(String(b.fid)):null;if(b.fid&&!f)return send(res,400,{error:'Fayl topilmadi, uni qayta tanlang'});
+  if(!text&&!f)return send(res,400,{error:'Xabar matnini yozing yoki rasm/video tanlang'});
+  const spec={text,file:f,kind:f?f.kind:'',menu:!!b.menu,tgid:''};
+  if(b.test){
+    if(!CH_A)return send(res,400,{error:'Admin guruhi (CHAT_ID) ulanmagan'});
+    try{await bcSendOne(CH_A,spec)}catch(e){return send(res,200,{ok:false,error:e.message})}
+    return send(res,200,{ok:true});
+  }
+  const recips=Object.values(db.users).filter(x=>!x.bl);
+  if(!recips.length)return send(res,400,{error:'Hozircha xabar yuboriladigan mijoz yoʻq. Mijozlar botga /start bosganda yoki Mini App ga kirganda roʻyxatga tushadi'});
+  const job={id:Date.now(),t:Date.now(),state:'running',total:recips.length,done:0,ok:0,fail:0,bl:0,err:'',text:text.slice(0,120),kind:f?f.kind:'text'};bc.job=job;
+  bcRun(job,spec,recips).catch(e=>{job.state='done';console.error('Xabar yuborish xatosi:',e.message)});
+  return send(res,200,{ok:true,job});
+}
 // ---- auth ----
 const sign=x=>crypto.createHmac('sha256',SEC).update(x).digest('hex'),sha=x=>crypto.createHash('sha256').update(x).digest();
 const authed=req=>{const m=(req.headers.cookie||'').match(/(?:^|; )s=(\d+)\.([a-f0-9]+)/);if(!m||!SEC)return false;const a=Buffer.from(sign(m[1])),b=Buffer.from(m[2]);return a.length===b.length&&crypto.timingSafeEqual(a,b)&&+m[1]>Date.now()};
@@ -254,6 +351,7 @@ const sendFile=(res,f,type,hd={})=>fs.readFile(f,(e,d)=>{if(e){res.writeHead(404
 const page=(res,f,extra={},frame=false)=>fs.readFile(path.join(PUB,f),'utf8',(e,d)=>{
   if(e){res.writeHead(404);return res.end('404')}
   const n=crypto.randomBytes(16).toString('base64');
+  if(f==='index.html')d=d.replace('/*SETTINGS*/','Object.assign(CFG,'+JSON.stringify(cfgPub()).replace(/</g,'\\u003c')+');');
   res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-cache',...(frame?{}:{'x-frame-options':'DENY'}),'content-security-policy':CSP(n,frame),...extra});
   res.end(d.replace(/<script>/g,'<script nonce="'+n+'">'));
 });
@@ -271,6 +369,12 @@ const server=http.createServer(async(req,res)=>{try{
     if(m=u.match(/^\/photos\/([\w-]+\.jpg)$/))return sendFile(res,path.join(PUB,'photos',m[1]),'image/jpeg',{'cache-control':'public, max-age=604800'});
     if(!SB&&(m=u.match(/^\/img\/([\w-]+\.jpg)$/)))return sendFile(res,path.join(UP,m[1]),'image/jpeg',{'cache-control':'public, max-age=2592000'});
     if(u==='/api/menu')return send(res,200,db.menu.filter(x=>x.a));
+    if(u==='/api/cats')return send(res,200,db.cats);
+    if(u==='/api/delivery'){
+      const q=new URL(req.url,'http://x').searchParams,la=+q.get('lat'),lo=+q.get('lng');
+      if(!q.get('lat')||!q.get('lng')||!Number.isFinite(la)||!Number.isFinite(lo)||Math.abs(la)>90||Math.abs(lo)>180)return send(res,400,{error:'Joylashuv notoʻgʻri'});
+      return send(res,200,calcDelivery(la,lo));
+    }
     if(u==='/api/slides')return send(res,200,db.slides.filter(x=>x.a));
     if(u==='/api/gallery')return send(res,200,db.gallery);
     if(u==='/api/about')return send(res,200,db.about);
@@ -279,6 +383,7 @@ const server=http.createServer(async(req,res)=>{try{
       const x=touchUser(tu);
       return send(res,200,{me:{id:x.id,fn:x.fn,ln:x.ln,un:x.un,n:x.n,s:x.s,ph:x.ph,ad:x.ad},orders:db.orders.filter(o=>o.uid===x.id).slice(-30).reverse().map(pub)});
     }
+    if(u==='/api/admin/bc'){if(!authed(req))return send(res,401,{error:'Ruxsat yoʻq'});return send(res,200,bcInfo())}
     if(u==='/api/admin/stats'){
       if(!authed(req))return send(res,401,{error:'Ruxsat yoʻq'});
       const q=new URL(req.url,'http://x').searchParams,from=q.get('from')||'',to=q.get('to')||'',re=/^\d{4}-\d{2}-\d{2}$/;
@@ -293,7 +398,7 @@ const server=http.createServer(async(req,res)=>{try{
       if(!authed(req))return send(res,401,{error:'Ruxsat yoʻq'});
       const l=Object.values(db.users).sort((a,b)=>b.t1-a.t1);return send(res,200,{total:l.length,users:l.slice(0,500)});
     }
-    if(u==='/api/admin/data')return authed(req)?send(res,200,{menu:db.menu,orders:db.orders.slice(-300),slides:db.slides,gallery:db.gallery,about:db.about,tg:{on:tgOn(),courier:!!CH_C,bot:BOT.un,mode:BOT.mode,app:WA},today:statsRange(dkey(Date.now()),dkey(Date.now())).tot,db:SB?'supabase':'local',keep:KEEP}):send(res,401,{error:'Ruxsat yoʻq'});
+    if(u==='/api/admin/data')return authed(req)?send(res,200,{menu:db.menu,cats:db.cats,settings:cfgFull(),gmap:!!cfgPub().googleKey,orders:db.orders.slice(-300),slides:db.slides,gallery:db.gallery,about:db.about,tg:{on:tgOn(),courier:!!CH_C,bot:BOT.un,mode:BOT.mode,app:WA},today:statsRange(dkey(Date.now()),dkey(Date.now())).tot,db:SB?'supabase':'local',keep:KEEP}):send(res,401,{error:'Ruxsat yoʻq'});
     res.writeHead(404,{'content-type':'text/plain; charset=utf-8'});return res.end('404 — sahifa topilmadi');
   }
   if(M!=='POST')return res.writeHead(405).end();
@@ -304,6 +409,7 @@ const server=http.createServer(async(req,res)=>{try{
     send(res,200,{ok:1});onUpdate(up).catch(e=>console.error('Update xatosi:',e.message));return;
   }
   const og=req.headers.origin;if(og){try{if(new URL(og).host!==req.headers.host)return send(res,403,{error:'Ruxsat yoʻq'})}catch{return send(res,403,{error:'Ruxsat yoʻq'})}}
+  if(u==='/api/admin/bc/file'){if(!authed(req))return send(res,401,{error:'Ruxsat yoʻq'});return bcUpload(req,res)}
   if(!/^application\/json/i.test(req.headers['content-type']||''))return send(res,415,{error:'Notoʻgʻri soʻrov turi'});
   const pn=Date.now(),pl=(postT.get(ip)||[]).filter(t=>pn-t<6e4);if(pl.length>=120)return send(res,429,{error:'Juda koʻp soʻrov'});pl.push(pn);postT.set(ip,pl);
   let b;try{b=await body(req,u==='/api/admin/upload'&&authed(req)?5e6:2e5)}catch(e){return send(res,e.message==='big'?413:400,{error:e.message==='big'?'Soʻrov juda katta (rasm hajmi katta)':'Xato soʻrov'})}
@@ -313,18 +419,20 @@ const server=http.createServer(async(req,res)=>{try{
     if(L.length>=6)return send(res,429,{error:'Juda koʻp buyurtma. Birozdan keyin urinib koʻring'});
     const items=[];let total=0;
     for(const it of Array.isArray(b.items)?b.items.slice(0,40):[]){const m=db.menu.find(x=>x.id===it.id&&x.a),q=Math.floor(+it.q);if(m&&q>=1&&q<=50){items.push({n:m.n,q,p:m.p});total+=m.p*q}}
-    const name=cl(b.name,60),phone=cl(b.phone,25),addr=cl(b.addr,200);
+    const name=cl(b.name,60),addr=cl(b.addr,200),pd=String(b.phone||'').replace(/\D/g,''),nd=pd.startsWith('998')?pd.slice(3):pd.replace(/^0+/,''),phone=nd.length===9?`+998 ${nd.slice(0,2)} ${nd.slice(2,5)} ${nd.slice(5,7)} ${nd.slice(7)}`:'';
     if(!items.length)return send(res,400,{error:'Savat boʻsh yoki taomlar mavjud emas'});
     if(!name)return send(res,400,{error:'Ismingizni kiriting'});
-    if(phone.replace(/\D/g,'').length<9)return send(res,400,{error:'Telefon raqamini toʻgʻri kiriting'});
+    if(!phone)return send(res,400,{error:'Telefon raqamini toʻliq kiriting: +998 XX XXX XX XX'});
     if(!addr)return send(res,400,{error:'Yetkazish manzilini kiriting'});
     const la=b.lat==null||b.lat===''?NaN:+b.lat,lo=b.lng==null||b.lng===''?NaN:+b.lng,geo=Number.isFinite(la)&&Number.isFinite(lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180;
-    const tu=tgUser(req),o={id:++db.lastId,t:now,name,phone,addr,note:cl(b.note,300),pay:'Naqd',items,total,st:0,tg:null,log:[{k:'new',t:now}],m:{},...(tu?{uid:tu.id}:{}),...(geo?{lat:+la.toFixed(6),lng:+lo.toFixed(6)}:{})};
+    if(!geo)return send(res,400,{error:'Yetkazish narxini hisoblash uchun joylashuvingizni xaritada belgilang'});
+    const dl=calcDelivery(la,lo);if(!dl.ok)return send(res,400,{error:`Kechirasiz, bu manzil yetkazish hududidan tashqarida (eng uzoq masofa ${dl.max} km)`});
+    const tu=tgUser(req),o={id:++db.lastId,t:now,name,phone,addr,note:cl(b.note,300),pay:'Naqd',items,sub:total,fee:dl.fee,km:dl.km,total:total+dl.fee,st:0,tg:null,log:[{k:'new',t:now}],m:{},...(tu?{uid:tu.id}:{}),...(geo?{lat:+la.toFixed(6),lng:+lo.toFixed(6)}:{})};
     L.push(now);ordT.set(ip,L);db.orders.push(o);
     if(tu){const x=touchUser(tu,true);x.n++;x.ph=phone;x.ad=addr;x.t1=now;saveUser(x)}
     if(SB)sbPut('meta',{lastId:db.lastId}).catch(()=>{});
     await saveOrder(o).catch(e=>console.error('Buyurtmani saqlash xatosi:',e.message));
-    send(res,200,{id:o.id});
+    send(res,200,{id:o.id,total:o.total,fee:o.fee,km:o.km});
     tg(o).then(ok=>{o.tg=ok;return saveOrder(o)}).catch(e=>console.error('Buyurtmani yangilash xatosi:',e.message));
     return;
   }
@@ -339,7 +447,15 @@ const server=http.createServer(async(req,res)=>{try{
   if(u==='/api/admin/logout')return send(res,200,{ok:1},{'set-cookie':'s=; Path=/; HttpOnly; Max-Age=0'});
   if(u==='/api/admin/status'){const o=db.orders.find(x=>x.id===b.id);if(!o)return send(res,404,{error:'Buyurtma topilmadi'});if(!Number.isInteger(b.st)||b.st<0||b.st>4)return send(res,400,{error:'Holat notoʻgʻri'});if(b.st!==o.st){const k=panelSet(o,b.st);await after(o,k)}return send(res,200,{ok:1})}
   if(u==='/api/admin/resend'){const o=db.orders.find(x=>x.id===b.id);if(!o)return send(res,404,{error:'Buyurtma topilmadi'});o.tg=await tg(o);try{await saveOrder(o)}catch(e){return fail(res,e)}return send(res,200,{ok:o.tg})}
-  if(u==='/api/admin/menu'&&Array.isArray(b.menu)){db.menu=b.menu.slice(0,300).map(cleanMenu).filter(m=>m.n&&m.p>0);try{await saveK('menu')}catch(e){return fail(res,e)}gc();return send(res,200,{ok:1,menu:db.menu})}
+  if(u==='/api/admin/menu'&&Array.isArray(b.menu)){
+    const items=b.menu.slice(0,300).map(cleanMenu).filter(m=>m.n&&m.p>0),cats=cleanCats(b.cats);
+    for(const m of items)if(!cats.includes(m.c))cats.push(m.c); // kategoriyasi roʻyxatda yoʻq taom yoʻqolmasin
+    db.menu=items;db.cats=cats.slice(0,30);
+    try{await saveK('menu');await saveK('cats')}catch(e){return fail(res,e)}gc();return send(res,200,{ok:1,menu:db.menu,cats:db.cats});
+  }
+  if(u==='/api/admin/bc/send')return bcStart(b,res);
+  if(u==='/api/admin/bc/cancel'){if(bc.job&&bc.job.state==='running')bc.job.cancel=true;return send(res,200,{ok:1})}
+  if(u==='/api/admin/settings'&&b.settings&&typeof b.settings==='object'){db.settings=cleanSettings(b.settings);try{await saveK('settings')}catch(e){return fail(res,e)}return send(res,200,{ok:1,settings:cfgFull(),gmap:!!cfgPub().googleKey})}
   if(u==='/api/admin/slides'&&Array.isArray(b.slides)){db.slides=b.slides.slice(0,20).map(cleanSlide).filter(s=>s.h);try{await saveK('slides')}catch(e){return fail(res,e)}gc();return send(res,200,{ok:1,slides:db.slides})}
   if(u==='/api/admin/about'&&b.about&&typeof b.about==='object'){db.about=cleanAbout(b.about);try{await saveK('about')}catch(e){return fail(res,e)}gc();return send(res,200,{ok:1,about:db.about})}
   if(u==='/api/admin/gallery'&&Array.isArray(b.gallery)){db.gallery=b.gallery.slice(0,60).map(cleanGal).filter(g=>g.img);try{await saveK('gallery')}catch(e){return fail(res,e)}gc();return send(res,200,{ok:1,gallery:db.gallery})}
@@ -368,14 +484,17 @@ async function boot(){
     const g=k=>{const r=rows.find(x=>x.key===k);return r&&Array.isArray(r.value)?r.value:null};
     for(const k of['menu','slides','gallery']){const v=g(k);if(v)db[k]=v;else await saveK(k).catch(e=>console.error('Boshlangʻich maʼlumotni yozib boʻlmadi:',e.message))}
     {const r=rows.find(x=>x.key==='about');if(r&&r.value&&typeof r.value==='object'&&!Array.isArray(r.value))db.about=cleanAbout(r.value);else await saveK('about').catch(e=>console.error('Boshlangʻich maʼlumotni yozib boʻlmadi:',e.message))}
+    {const v=g('cats');if(v)db.cats=cleanCats(v);else{db.cats=cleanCats(db.menu.map(m=>m.c));await saveK('cats').catch(e=>console.error('Boshlangʻich maʼlumotni yozib boʻlmadi:',e.message))}}
+    {const v=g('bc');if(v)db.bc=v.slice(0,20)}
+    {const r=rows.find(x=>x.key==='settings');if(r&&r.value&&typeof r.value==='object'&&!Array.isArray(r.value))db.settings=cleanSettings(r.value)}
     for(const r of rows)if(String(r.key).startsWith('user:')&&r.value&&r.value.id)db.users[r.value.id]=r.value;
     {const r=rows.find(x=>x.key==='stats');if(r&&r.value&&typeof r.value==='object'&&!Array.isArray(r.value))db.stats=r.value}
     db.orders=rows.filter(x=>String(x.key).startsWith('order:')).map(x=>x.value).sort((a,b)=>a.id-b.id);
     const mt=rows.find(x=>x.key==='meta');db.lastId=Math.max(1000,(mt&&mt.value&&+mt.value.lastId)||0);
     await sbFetch(`${SB.u}/storage/v1/bucket`,{method:'POST',headers:sbh({'content-type':'application/json'}),body:JSON.stringify({id:SB.b,name:SB.b,public:true})},1).catch(()=>{});
     setInterval(()=>sbFetch(`${SB.u}/rest/v1/kv?select=key&limit=1`,{headers:sbh()}).catch(e=>console.error('Supabase keep-alive:',e.message)),6*36e5);
-  }else{try{const d=JSON.parse(fs.readFileSync(DB,'utf8'));for(const k of['menu','slides','gallery'])if(Array.isArray(d[k]))db[k]=d[k];if(d.about&&typeof d.about==='object')db.about=cleanAbout(d.about);if(d.users&&typeof d.users==='object'&&!Array.isArray(d.users))db.users=d.users;if(d.stats&&typeof d.stats==='object'&&!Array.isArray(d.stats))db.stats=d.stats;if(Array.isArray(d.orders))db.orders=d.orders;db.lastId=Math.max(1000,+d.lastId||0)}catch{}gc()}
-  db.menu.forEach(m=>{if(m.id===1&&m.n==='Osh (palov)'&&!m.img)m.img=PLOV});
+  }else{try{const d=JSON.parse(fs.readFileSync(DB,'utf8'));for(const k of['menu','slides','gallery'])if(Array.isArray(d[k]))db[k]=d[k];if(d.about&&typeof d.about==='object')db.about=cleanAbout(d.about);db.cats=cleanCats(Array.isArray(d.cats)?d.cats:db.menu.map(m=>m.c));if(d.settings&&typeof d.settings==='object')db.settings=cleanSettings(d.settings);if(Array.isArray(d.bc))db.bc=d.bc.slice(0,20);if(d.users&&typeof d.users==='object'&&!Array.isArray(d.users))db.users=d.users;if(d.stats&&typeof d.stats==='object'&&!Array.isArray(d.stats))db.stats=d.stats;if(Array.isArray(d.orders))db.orders=d.orders;db.lastId=Math.max(1000,+d.lastId||0)}catch{}gc()}
+  for(const m of db.menu)if(!db.cats.includes(m.c))db.cats.push(m.c);
   db.lastId=Math.max(db.lastId,...db.orders.map(o=>+o.id||0),1000);db.orders.forEach(o=>{if(o.st>=3&&!o.done)o.done=Date.now()});
   await purge();setInterval(()=>purge().catch(()=>{}),36e5).unref();
   server.listen(PORT,()=>{console.log('Marakand: http://localhost:'+PORT,'| admin:',AP,'| maʼlumot:',SB?'Supabase':'mahalliy fayl');if(!PASS)console.warn('DIQQAT: ADMIN_PASSWORD berilmagan, admin kirish ishlamaydi');else if(PASS.length<10)console.warn('DIQQAT: ADMIN_PASSWORD juda qisqa (kamida 10 belgi boʻlsin)');if(!E.SECRET)console.warn('DIQQAT: SECRET berilmagan. Server qayta yonganda admin qayta kirishi kerak boʻladi');if(!tgOn())console.warn('Eslatma: BOT_TOKEN/CHAT_ID yoʻq, buyurtmalar Telegramga yuborilmaydi');else{if(!CH_C)console.warn('Eslatma: COURIER_CHAT_ID yoʻq, kuryerlar chati ishlatilmaydi');if(!WA)console.warn('Eslatma: PUBLIC_URL (https) yoʻq: bot polling rejimida ishlaydi va Mini App tugmasi oʻrnatilmaydi. Mahalliy sinov uchun alohida test bot tokenidan foydalaning, chunki polling ishlayotgan serverning webhookini oʻchiradi')}tgStart()});
