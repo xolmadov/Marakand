@@ -42,6 +42,14 @@ label.l{font-size:12px;color:var(--mut);display:block;margin:2px 0}
 .ch svg{width:100%;height:auto;display:block}
 .tp{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--ln);font-size:13px}.tp div{height:8px;background:var(--n2);border-radius:99px;overflow:hidden}.tp i{display:block;height:100%;background:var(--y);border-radius:99px}.tp em{font-style:normal;color:var(--mut);min-width:96px;text-align:right}
 @media(max-width:760px){.kp{grid-template-columns:1fr 1fr}.tp{grid-template-columns:1fr auto}.tp div{grid-column:1/-1;order:3}.tp em{min-width:0}}
+.hl{margin:0 0 14px;line-height:1.55}
+.cr{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}.cr input{flex:1;min-width:140px}.cr.k input{flex:1 1 100%}.cr.k .bd{margin-right:auto}
+.dirty{color:var(--mut);font-size:12px;text-align:center;flex:1}.dirty.on{color:var(--y);font-weight:700}
+.how{margin-top:14px;font-size:13px;color:var(--cr)}.how summary{cursor:pointer;color:var(--y);font-weight:700}.how ol{margin:10px 0 0;padding-left:20px;line-height:1.7;color:var(--mut)}.how b{color:var(--cr)}
+.pg{height:8px;background:var(--n2);border-radius:99px;overflow:hidden;margin:10px 0}.pg i{display:block;height:100%;background:var(--y);transition:width .4s}
+.bcf{display:flex;gap:12px;align-items:center;margin-top:6px}.bcf img{width:64px;height:64px;object-fit:cover;border-radius:10px}.bcf small{display:block;color:var(--mut)}
+.hi{display:flex;gap:8px;align-items:center;padding:9px 0;border-top:1px solid var(--ln)}.hi>div{flex:1;min-width:0;font-size:13px}.hi small{display:block;color:var(--mut);margin-top:2px}
+.kp{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important}
 </style>
 </head>
 <body>
@@ -60,7 +68,7 @@ async function api(u,b){
 const run=async(fn)=>{try{return await fn()}catch(e){if(e&&e.message)toast(e.message,true)}};
 function login(msg=''){
   if($('pw')){if(msg)$('le').textContent=msg;return}
-  A.innerHTML=`<div class="lg"><h2>Marakand · Kirish</h2><input id="pw" type="password" placeholder="Parol" autocomplete="current-password"><div id="le" style="color:var(--r);min-height:20px;margin:8px 0">${esc(msg)}</div><button class="btn p" style="width:100%" id="lb">Kirish</button></div>`;
+  A.innerHTML=`<div class="lg"><h2>Marakand · Boshqaruv paneli</h2><input id="pw" type="password" placeholder="Parol" autocomplete="current-password"><div id="le" style="color:var(--r);min-height:20px;margin:8px 0">${esc(msg)}</div><button class="btn p" style="width:100%" id="lb">Kirish</button></div>`;
   const go=async()=>{try{await api('/api/login',{password:$('pw').value});load(true)}catch(e){$('le').textContent=e.message}};
   $('lb').onclick=go;$('pw').onkeydown=e=>{if(e.key==='Enter')go()};$('pw').focus();
 }
@@ -76,10 +84,13 @@ async function load(first){
   }catch(e){}
 }
 function setP(o,p,v){const k=p.split('.');let c=o;for(let i=0;i<k.length-1;i++)c=c[k[i]];c[k[k.length-1]]=v}
-const onEdit=e=>{const t=e.target;if(!t.dataset||!t.dataset.p||!D)return;setP(D,t.dataset.p,t.type==='checkbox'?(t.checked?1:0):t.type==='number'?+t.value:t.value)};
-document.addEventListener('input',e=>{const t=e.target;if(t.id==='uq'){US.q=t.value;$('ul').innerHTML=ulist()}});document.addEventListener('input',onEdit);document.addEventListener('change',onEdit);
+const onEdit=e=>{const t=e.target;if(!t.dataset||!t.dataset.p||!D)return;setP(D,t.dataset.p,t.type==='checkbox'?(t.checked?1:0):t.type==='number'?+t.value:t.value);if(t.dataset.p.indexOf('menu.')===0)markDirty()};
+document.addEventListener('input',e=>{const t=e.target;if(t.id==='uq'){US.q=t.value;$('ul').innerHTML=ulist()}if(t.id==='bct'){BC.text=t.value;const n=$('bcn');if(n)n.textContent=t.value.length+' / 4096'}});document.addEventListener('change',e=>{if(e.target.id==='bcm')BC.menu=e.target.checked});document.addEventListener('input',onEdit);document.addEventListener('change',onEdit);
+document.addEventListener('change',e=>{const t=e.target;if(!t.dataset||t.dataset.cat===undefined||!D)return;const i=+t.dataset.cat,old=D.cats[i],nv=t.value.trim().slice(0,30);
+  if(!nv||D.cats.some((c,k)=>k!==i&&c.toLowerCase()===nv.toLowerCase())){t.value=old;toast(!nv?'Nom boʻsh boʻlishi mumkin emas':'Bunday kategoriya allaqachon bor',true);return}
+  D.menu.forEach(m=>{if(m.c===old)m.c=nv});D.cats[i]=nv;markDirty();view()});
 /* ---- rasm yuklash ---- */
-function pickFiles(multi){return new Promise(res=>{const i=document.createElement('input');i.type='file';i.accept='image/*';i.multiple=!!multi;i.style.display='none';document.body.appendChild(i);i.onchange=()=>{res([...i.files]);i.remove()};i.click()})}
+function pickFiles(multi,acc){return new Promise(res=>{const i=document.createElement('input');i.type='file';i.accept=acc||'image/*';i.multiple=!!multi;i.style.display='none';document.body.appendChild(i);i.onchange=()=>{res([...i.files]);i.remove()};i.click()})}
 async function toJpeg(file){
   let bm;
   try{bm=await createImageBitmap(file,{imageOrientation:'from-image'})}catch(e){
@@ -103,12 +114,18 @@ const tl=o=>(o.log||[]).filter(e=>LGN[e.k]).map(e=>`<div class="tl"><span>${LGN[
 const ordV=(arch)=>[...D.orders].filter(o=>arch?o.st>=3:o.st<3).reverse().map(o=>`<div class="box ${o.st===0?'n0':''}"><div class="r"><b>#${o.id}</b><span class="bd">${new Date(o.t).toLocaleString('ru-RU')}</span></div>
 <p style="margin:6px 0"><b>${esc(o.name)}</b> · <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a>${o.uid?` · <a href="tg://user?id=${+o.uid}">Telegram</a>`:''}<br>${esc(o.addr)}${o.lat!=null?` · <a href="https://yandex.uz/maps/?pt=${+o.lng},${+o.lat}&z=17&l=map" target="_blank" rel="noopener">Xaritada ochish</a>`:''}${o.note?`<br><i>${esc(o.note)}</i>`:''}</p>
 ${o.items.map(i=>`<div class="r"><span>${esc(i.n)} × ${i.q}</span><span>${fmt(i.p*i.q)}</span></div>`).join('')}
-<div class="r" style="margin:8px 0"><b>Jami · ${esc(o.pay)}</b><b>${fmt(o.total)}</b></div>
+${o.fee?`<div class="r"><span>Yetkazish${o.km?' ('+o.km+' km)':''}</span><span>${fmt(o.fee)}</span></div>`:''}<div class="r" style="margin:8px 0"><b>Jami · ${esc(o.pay)}</b><b>${fmt(o.total)}</b></div>
 <div class="r"><span>${D.tg.on?`<span class="bd s${o.st}">${lab(o)}</span>`:`<select data-s="${o.id}" style="max-width:220px">${ST.map((s,k)=>`<option value="${k}" ${k===o.st?'selected':''}>${s}</option>`).join('')}</select>`}</span>
 ${o.tg===false?`<span><span class="bd bad">Telegramga yuborilmadi</span> <button class="btn" data-a="resend" data-i="${o.id}">Qayta yuborish</button></span>`:o.tg?'<span class="bd">Telegramga yuborildi</span>':''}</div>${tl(o)}</div>`).join('')||'<div class="box">Hozircha buyurtma yoʻq.</div>';
 const phs=(img,p,a)=>`<div class="ph ${a||''}" data-a="img" data-p="${p}">${img?`<img src="${esc(img)}" alt=""><button class="x" data-a="imgx" data-p="${p}" title="Olib tashlash">×</button>`:'Rasm<br>qoʻshish'}</div>`;
-const menuV=()=>`<datalist id="cats">${[...new Set(D.menu.map(m=>m.c))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>${D.menu.map((m,i)=>`<div class="box dish"><div class="dtop">${phs(m.img,'menu.'+i+'.img')}<div class="f" style="flex:1;min-width:0"><input data-p="menu.${i}.n" value="${esc(m.n)}" placeholder="Taom nomi"><div class="f2"><input data-p="menu.${i}.c" list="cats" value="${esc(m.c)}" placeholder="Kategoriya"><input type="number" inputmode="numeric" data-p="menu.${i}.p" value="${m.p}" placeholder="Narxi (soʻm)"></div></div></div><input data-p="menu.${i}.d" value="${esc(m.d)}" placeholder="Qisqa tavsif" style="margin-top:8px"><div class="r" style="margin-top:10px"><label class="chk"><input type="checkbox" data-p="menu.${i}.a" ${m.a?'checked':''}> Menyuda bor</label><button class="btn d" data-a="mdel" data-i="${i}">Oʻchirish</button></div></div>`).join('')}<div class="bar"><button class="btn" data-a="madd">+ Yangi taom</button><button class="btn p" data-a="msave">Saqlash</button></div>`;
-const ICN={'':'Belgisiz',star:'Reyting (yulduz)',bike:'Yetkazish',cash:'Pul',clock:'Soat'},LNK={'#menu':'Menyu','#gallery':'Galereya','#about':'Biz haqimizda','#contact':'Aloqa'};
+/* ---- menyu va kategoriyalar ---- */
+let MF='Hammasi',DIRTY=false,SUB={orders:'act',site:'slides'};
+const H=t=>`<div class="hint hl">${t}</div>`;
+const chips=(items,cur,act)=>`<div class="chips">${items.map(([k,v])=>`<button class="btn ${cur===k?'on':''}" data-a="${act}" data-i="${esc(k)}">${esc(v)}</button>`).join('')}</div>`;
+const markDirty=()=>{DIRTY=true;const e=$('dirty');if(e){e.textContent='Saqlanmagan oʻzgarishlar bor';e.className='dirty on'}};
+const catV=()=>`<div class="box"><b>Kategoriyalar</b><div class="hint" style="margin:3px 0 12px">Menyudagi boʻlimlar (masalan: Taomlar, Ichimliklar). Yangisini yozib qoʻshing, nomini oʻzgartiring yoki joyini almashtiring.</div>${D.cats.map((c,i)=>`<div class="cr k"><input data-cat="${i}" value="${esc(c)}" maxlength="30"><span class="bd">${D.menu.filter(m=>m.c===c).length} ta</span><button class="btn" data-a="cup" data-i="${i}" ${i?'':'disabled'}>↑</button><button class="btn" data-a="cdn" data-i="${i}" ${i<D.cats.length-1?'':'disabled'}>↓</button><button class="btn d" data-a="cdel" data-i="${i}">Oʻchirish</button></div>`).join('')||'<div class="hint">Hozircha kategoriya yoʻq. Birinchisini qoʻshing.</div>'}<div class="cr" style="margin-top:10px"><input id="ncat" placeholder="Yangi kategoriya nomi" maxlength="30"><button class="btn p" data-a="cadd">+ Qoʻshish</button></div></div>`;
+const dish=(m,i)=>`<div class="box dish"><div class="dtop">${phs(m.img,'menu.'+i+'.img')}<div class="f" style="flex:1;min-width:0"><input data-p="menu.${i}.n" value="${esc(m.n)}" placeholder="Taom nomi"><div class="f2"><select data-p="menu.${i}.c">${D.cats.includes(m.c)?'':`<option value="${esc(m.c)}" selected disabled>${m.c?esc(m.c):'Kategoriyani tanlang'}</option>`}${D.cats.map(c=>`<option value="${esc(c)}" ${m.c===c?'selected':''}>${esc(c)}</option>`).join('')}</select><input type="number" inputmode="numeric" data-p="menu.${i}.p" value="${m.p}" placeholder="Narxi (soʻm)"></div></div></div><input data-p="menu.${i}.d" value="${esc(m.d)}" placeholder="Qisqa tavsif (masalan: goʻsht va sabzi bilan)" style="margin-top:8px"><div class="r" style="margin-top:10px"><label class="chk"><input type="checkbox" data-p="menu.${i}.a" ${m.a?'checked':''}> Saytda koʻrsatish</label><button class="btn d" data-a="mdel" data-i="${i}">Oʻchirish</button></div></div>`;
+const menuV=()=>H('Taomlar va kategoriyalarni shu yerda boshqarasiz. Oʻzgartirgach, pastdagi «Saqlash» tugmasini bosing.')+catV()+chips([['Hammasi','Hammasi ('+D.menu.length+')'],...D.cats.map(c=>[c,c])],MF,'mf')+(D.menu.map((m,i)=>MF==='Hammasi'||m.c===MF?dish(m,i):'').join('')||'<div class="box">Bu kategoriyada taom yoʻq. «+ Yangi taom» tugmasi bilan qoʻshing.</div>')+`<div class="bar"><button class="btn" data-a="madd">+ Yangi taom</button><span class="dirty ${DIRTY?'on':''}" id="dirty">${DIRTY?'Saqlanmagan oʻzgarishlar bor':'Hammasi saqlangan'}</span><button class="btn p" data-a="msave">Saqlash</button></div>`;
 const slV=()=>D.slides.map((s,i)=>`<div class="box"><div class="r" style="margin-bottom:10px"><b>Slayd ${i+1}</b><span><label><input type="checkbox" data-p="slides.${i}.a" ${s.a?'checked':''}> koʻrsatish</label> <button class="btn" data-a="sup" data-i="${i}" ${i?'':'disabled'}>↑</button> <button class="btn" data-a="sdn" data-i="${i}" ${i<D.slides.length-1?'':'disabled'}>↓</button> <button class="btn d" data-a="sdel" data-i="${i}">Oʻchirish</button></span></div>
 <div class="imgs"><div><label class="l">1-rasm (katta)</label>${phs(s.i1,'slides.'+i+'.i1','big')}</div><div><label class="l">2-rasm (kichik)</label>${phs(s.i2,'slides.'+i+'.i2','big')}</div></div>
 <div class="f"><div class="f2"><div><label class="l">Kichik sarlavha</label><input data-p="slides.${i}.k" value="${esc(s.k)}"></div><div><label class="l">Asosiy sarlavha (*soʻz* = oltin rangda)</label><input data-p="slides.${i}.h" value="${esc(s.h)}"></div></div>
@@ -120,10 +137,26 @@ const galV=()=>`<div class="r" style="margin-bottom:12px"><div class="hint" styl
 ${D.gallery.length?'<div style="margin-top:12px"><button class="btn p" data-a="gsave">Izohlarni saqlash</button></div>':''}`;
 const abV=()=>`<div class="box"><b>“Biz haqimizda” rasmi</b><div class="hint">Saytdagi “Biz haqimizda” matni yonida shu bitta rasm koʻrinadi. Rasm yuklanishi yoki olib tashlanishi bilan avtomatik saqlanadi.</div><div class="r" style="justify-content:flex-start;gap:14px;align-items:flex-start">${phs(D.about.img,'about.img','xl')}<div class="hint" style="margin:0">${D.about.img?'Rasmni almashtirish uchun ustiga bosing.':'Rasm tanlanmagan: saytda kafe logotipi koʻrinadi.'}<br>Tavsiya: tik (4:5) format, kamida 800 px kenglikda.</div></div></div>`;
 const saveAbout=async()=>{const r=await api('/api/admin/about',{about:D.about});D.about=r.about;view();toast('Saqlandi')};
-const setV=()=>{const g=D.tg;return `<div class="box"><b>Telegram bot</b><p>Holati: ${g.on?'<span class="bd s3">Sozlangan</span>':'<span class="bd bad">Sozlanmagan (BOT_TOKEN va CHAT_ID yoʻq)</span>'}</p>
-<div class="hint" style="margin-top:0">${g.bot?`Bot: <b>@${esc(g.bot)}</b> · rejim: ${g.mode==='webhook'?'webhook':'polling (mahalliy sinov)'}<br>`:''}Kuryerlar chati: ${g.courier?'<b>ulangan</b>':'ulanmagan (COURIER_CHAT_ID)'}<br>Mini App havolasi: ${g.app?`<a href="${esc(g.app)}" target="_blank" rel="noopener">${esc(g.app)}</a>`:'yoʻq (PUBLIC_URL https boʻlishi kerak)'}</div>
-<button class="btn p" data-a="tgtest">Test xabar yuborish</button><div id="tgr" style="margin-top:10px"></div>
-<div class="hint">Test xabar admin chatiga (va ulangan boʻlsa kuryerlar chatiga) keladi. Guruhda <b>/id</b> yozsangiz, bot chat ID sini koʻrsatadi.</div></div>`};
+const setV=()=>{const g=D.tg,s=D.settings||{},ok=(c,t)=>`<span class="bd ${c?'s3':'bad'}">${t}</span>`;return `${H('Saytdagi telefon raqami, manzil va ish vaqtini shu yerda oʻzgartirasiz. Oʻzgartirgach «Saqlash» ni bosing.')}
+<div class="box"><b>Kafe maʼlumotlari</b><div class="f" style="margin-top:10px">
+<div class="f2"><div><label class="l">Telefon raqami (saytda koʻrinadi)</label><input data-p="settings.phone" value="${esc(s.phone)}" placeholder="1414"></div><div><label class="l">Ish vaqti</label><input data-p="settings.hours" value="${esc(s.hours)}" placeholder="07:00 – 23:00"></div></div>
+<div><label class="l">Manzil</label><input data-p="settings.address" value="${esc(s.address)}"></div>
+<div><label class="l">Reyting yozuvi (ixtiyoriy)</label><input data-p="settings.rating" value="${esc(s.rating)}" placeholder="4.2 · Yandex Xaritalar"></div>
+<div class="f2"><div><label class="l">Telegram havolasi (ixtiyoriy)</label><input data-p="settings.telegram" value="${esc(s.telegram)}" placeholder="https://t.me/..."></div><div><label class="l">Instagram havolasi (ixtiyoriy)</label><input data-p="settings.instagram" value="${esc(s.instagram)}" placeholder="https://instagram.com/..."></div></div></div>
+<div style="margin-top:12px"><button class="btn p" data-a="setsave">Saqlash</button></div></div>
+<div class="box"><b>Yetkazish narxi</b><div class="hint" style="margin:3px 0 12px">Narx mijoz xaritada belgilagan joygacha masofaga qarab avtomatik hisoblanadi va savatda koʻrinadi. Boshlangan har bir kilometr hisoblanadi.</div><div class="f">
+<div class="f2"><div><label class="l">Birinchi 1 km uchun (soʻm)</label><input type="number" inputmode="numeric" data-p="settings.delFirst" value="${s.delFirst}"></div><div><label class="l">Keyingi har bir km uchun (soʻm)</label><input type="number" inputmode="numeric" data-p="settings.delKm" value="${s.delKm}"></div></div>
+<div class="f2"><div><label class="l">Eng uzoq masofa, km (0 = cheklovsiz)</label><input type="number" inputmode="decimal" data-p="settings.delMax" value="${s.delMax}"></div><div><label class="l">Yoʻl koeffitsienti</label><input type="number" step="0.1" inputmode="decimal" data-p="settings.roadK" value="${s.roadK}"></div></div></div>
+<div class="hint" style="margin-top:10px">Misol: 1 km gacha <b>${fmt(s.delFirst)}</b>, 2 km gacha <b>${fmt(s.delFirst+s.delKm)}</b>, 3 km gacha <b>${fmt(s.delFirst+2*s.delKm)}</b>, 5 km gacha <b>${fmt(s.delFirst+4*s.delKm)}</b>.<br>Yoʻl koeffitsienti: xaritadagi toʻgʻri masofa shu songa koʻpaytiriladi (yoʻllar egri-bugri boʻlgani uchun). 1.3 tavsiya etiladi, 1 qilsangiz toʻgʻri chiziq boʻyicha hisoblanadi. Oʻzgartirgach «Saqlash» ni bosing.</div>
+<div style="margin-top:12px"><button class="btn p" data-a="setsave">Saqlash</button></div></div>
+<div class="box"><b>Google xarita</b> ${ok(D.gmap,D.gmap?'Ulangan':'Ulanmagan')}<div class="hint" style="margin:6px 0 10px">Mijoz xaritadan joyini belgilaganda koʻcha va uy raqami aniq chiqishi uchun Google xarita kaliti kerak.</div>
+<label class="l">Google xarita kaliti</label><input data-p="settings.googleKey" value="${esc(s.googleKey)}" placeholder="AIza..." autocomplete="off">
+<div style="margin-top:12px"><button class="btn p" data-a="setsave">Saqlash</button></div>
+<details class="how"><summary>Kalitni qanday olaman?</summary><ol><li><b>console.cloud.google.com</b> ga kiring va yangi loyiha yarating.</li><li>«APIs &amp; Services» → «Library» da <b>Maps JavaScript API</b> va <b>Geocoding API</b> ni yoqing (Enable).</li><li>«Credentials» → «Create credentials» → <b>API key</b>. Chiqqan kalitni nusxalab, yuqoriga qoʻying.</li><li>Kalitni oʻgʻirlanishdan himoya qiling: «Application restrictions» → «Websites» → sayt manzilingizni yozing (masalan <b>https://sizning-nom.onrender.com/*</b>).</li><li>Google toʻlov kartasini (billing) ulashni soʻraydi. Kichik kafe uchun oylik bepul limit odatda yetadi, narxlarni Google sahifasidan tekshirib oling.</li><li>Saqlang va saytni yangilang.</li></ol></details></div>
+<div class="box"><b>Telegram bot</b><div class="hint" style="margin:6px 0 10px">Buyurtmalar guruhlarga tushishi va mijozlar Telegram ichida buyurtma berishi uchun.</div>
+<div class="r" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">${ok(g.on,g.on?'Bot ulangan'+(g.bot?' (@'+esc(g.bot)+')':''):'Bot ulanmagan')}${ok(g.courier,g.courier?'Kuryerlar guruhi ulangan':'Kuryerlar guruhi ulanmagan')}${ok(g.app,g.app?'Mini App tugmasi ulangan':'Mini App tugmasi ulanmagan')}</div>
+<div style="margin-top:12px"><button class="btn p" data-a="tgtest">Test xabar yuborish</button></div><div id="tgr" style="margin-top:10px"></div>
+<div class="hint">Test xabar guruhlarga keladi. Guruhda <b>/id</b> deb yozsangiz, bot guruh raqamini aytadi.${g.on&&!g.app?' Mini App ishlashi uchun sayt manzili https boʻlishi kerak.':''}</div></div>`};
 /* ---- statistika ---- */
 const tk=t=>new Date(t+5*36e5).toISOString().slice(0,10),addD=(k,n)=>new Date(Date.parse(k)+n*864e5).toISOString().slice(0,10),dm=k=>k.slice(8)+'.'+k.slice(5,7)+'.'+k.slice(0,4);
 const PRE=[['0','Bugun'],['1','Kecha'],['7','7 kun'],['30','30 kun'],['90','90 kun'],['365','1 yil'],['c','Boshqa davr']];
@@ -167,10 +200,10 @@ const stV=()=>{
   const kp=(l,v,c)=>`<div class="box"><small>${l}</small><b>${v}</b>${c||''}</div>`;
   const mxq=Math.max(1,...d.top.map(x=>x.q));
   return ctl+`<div class="hint">${dm(d.from)}${d.from===d.to?'':' – '+dm(d.to)} · ${d.span} kun · oldingi davr: ${dm(pf)}${pf===pt2?'':' – '+dm(pt2)} bilan solishtirildi${SS.busy?' · yangilanmoqda…':''}</div>
-<div class="kp">${kp('Tushum (yetkazilgan)',fmt(k.s),dlt(k.s,p.s))}${kp('Yetkazilgan buyurtmalar',k.n,dlt(k.n,p.n))}${kp('Oʻrtacha chek',fmt(k.avg),dlt(k.avg,p.avg))}${kp('Bekor qilingan',k.c,'')}</div>
+<div class="kp">${kp('Tushum (taomlar)',fmt(k.s),dlt(k.s,p.s))}${kp('Yetkazilgan buyurtmalar',k.n,dlt(k.n,p.n))}${kp('Oʻrtacha chek',fmt(k.avg),dlt(k.avg,p.avg))}${kp('Yetkazish haqi',fmt(k.f||0),dlt(k.f||0,p.f||0))}${kp('Bekor qilingan',k.c,'')}</div>
 <div class="box ch"><b>Tushum dinamikasi</b><div style="margin-top:8px">${chart(d.days)}</div></div>
 <div class="box"><b>Eng koʻp sotilgan taomlar</b>${d.top.map(x=>`<div class="tp"><span>${esc(x.n)}</span><div><i style="width:${(x.q/mxq*100).toFixed(0)}%"></i></div><b>${x.q} ta</b><em>${fmt(x.s)}</em></div>`).join('')||'<div class="hint">Maʼlumot yoʻq.</div>'}</div>
-<div class="hint">Tushum faqat “Yetkazildi” holatiga oʻtgan buyurtmalardan hisoblanadi. Arxivdan oʻchirilgan buyurtmalar ham statistikada saqlanadi.</div>`;
+<div class="hint">Tushum faqat “Yetkazildi” holatiga oʻtgan buyurtmalarning taom narxidan hisoblanadi, yetkazish haqi alohida koʻrsatiladi. Arxivdan oʻchirilgan buyurtmalar ham statistikada saqlanadi.</div>`;
 };
 /* ---- mijozlar (Mini App foydalanuvchilari) ---- */
 let US={list:null,total:0,q:''};
@@ -179,26 +212,85 @@ const dtT=t=>new Date(t).toLocaleString('ru-RU',{timeZone:'Asia/Tashkent',day:'2
 const ulist=()=>{const q=US.q.toLowerCase(),l=(US.list||[]).filter(u=>!q||[u.fn,u.ln,u.un,u.id].join(' ').toLowerCase().includes(q));
   return l.map(u=>`<div class="box"><div class="r"><b>${esc([u.fn,u.ln].filter(Boolean).join(' ')||'Nomaʼlum')}</b><span class="bd">${u.n} ta buyurtma · ${fmt(u.s)}</span></div><div class="hint" style="margin:4px 0 0">${u.un?`<a href="https://t.me/${esc(u.un)}" target="_blank" rel="noopener">@${esc(u.un)}</a> · `:''}ID ${u.id}${u.ph?` · ${esc(u.ph)}`:''}<br>Oxirgi kirish: ${dtT(u.t1)} · Birinchi kirish: ${dtT(u.t0)}</div></div>`).join('')||'<div class="box">Hech kim topilmadi.</div>'};
 const uV=()=>!US.list?'<div class="box">Yuklanmoqda…</div>':`<div class="r" style="margin-bottom:10px"><div class="hint" style="margin:0">Mini App ga kirgan mijozlar: <b>${US.total}</b> ta${US.total>US.list.length?` (oxirgi ${US.list.length} tasi koʻrsatilgan)`:''}</div></div><input id="uq" placeholder="Ism, @username yoki ID boʻyicha qidirish" value="${esc(US.q)}" style="margin-bottom:12px"><div id="ul">${ulist()}</div>`;
+/* ---- xabar yuborish (botdagi mijozlarga) ---- */
+let BC={fid:'',name:'',kind:'',size:0,prev:'',text:'',menu:true,info:null,busy:false};
+const KN={photo:'Rasm',video:'Video',animation:'GIF',doc:'Fayl',text:'Matn'};
+const dataToBlob=d=>{const[h,b]=d.split(','),bin=atob(b),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new Blob([u],{type:'image/jpeg'})};
+const bcStatus=()=>{
+  const i=BC.info;if(!i)return '';const j=i.job;let h='';
+  if(j&&j.state==='running'){const p=j.total?Math.round(j.done/j.total*100):0;h+=`<div class="box"><b>Yuborilmoqda… ${p}%</b><div class="pg"><i style="width:${p}%"></i></div><div class="hint" style="margin:0 0 10px">${j.done} / ${j.total} · yetkazildi: ${j.ok} · yetib bormadi: ${j.bl+j.fail}</div><button class="btn d" data-a="bccancel">Toʻxtatish</button></div>`}
+  if((i.hist||[]).length)h+=`<div class="box"><b>Oxirgi xabarlar</b>${i.hist.slice(0,8).map(x=>`<div class="hi"><div><b>${KN[x.kind]||'Matn'}</b> · ${esc(x.text||'(matnsiz)')}<small>${dtT(x.t)}${x.state==='cancelled'?' · toʻxtatilgan':''}</small></div><span class="bd s3">${x.ok}/${x.total}</span>${x.bl+x.fail?`<span class="bd bad">${x.bl+x.fail} ta yetmadi</span>`:''}</div>`).join('')}</div>`;
+  return h;
+};
+const bcV=()=>{const i=BC.info||{audience:0,total:0,bot:true};return `${H('Botga <b>/start</b> bosgan va Mini App ga kirgan mijozlarga xabar yuborasiz. Matn, rasm yoki video yuborish mumkin.')}${i.bot===false?H('<span style="color:var(--r)">Telegram bot ulanmagan. Avval Sozlamalar da botni ulang.</span>'):''}
+<div class="box"><b>Yangi xabar</b><div class="hint" style="margin:3px 0 12px">Qabul qiluvchilar: <b id="bca">${i.audience}</b> ta mijoz${i.total>i.audience?` (${i.total-i.audience} ta botni bloklagan)`:''}</div>
+<label class="l">Xabar matni</label><textarea id="bct" rows="5" maxlength="4096" placeholder="Masalan: Aziz mijozlar! Bugun barcha taomlarga 10% chegirma!">${esc(BC.text)}</textarea><div class="hint" id="bcn" style="margin:4px 0 0">${BC.text.length} / 4096</div>
+<label class="l" style="margin-top:14px">Rasm yoki video (ixtiyoriy)</label>
+${BC.busy?'<div class="hint" id="bcup" style="margin:6px 0">Yuklanmoqda…</div>':BC.fid?`<div class="bcf">${BC.prev?`<img src="${BC.prev}" alt="">`:''}<div style="flex:1;min-width:0"><b style="word-break:break-all">${esc(BC.name)}</b><small>${KN[BC.kind]||'Fayl'} · ${BC.size<1048576?Math.round(BC.size/1024)+' KB':(BC.size/1048576).toFixed(1)+' MB'}</small></div><button class="btn d" data-a="bcx">Olib tashlash</button></div>`:'<button class="btn" data-a="bcpick">+ Rasm yoki video tanlash</button><div class="hint" style="margin:6px 0 0">Video 48 MB gacha (MP4 tavsiya etiladi).</div>'}
+<label class="chk" style="margin-top:14px"><input type="checkbox" id="bcm" ${BC.menu?'checked':''}> Xabar tagiga «Menyuni ochish» tugmasini qoʻshish</label>
+<div class="r" style="margin-top:16px;gap:8px;flex-wrap:wrap"><button class="btn" data-a="bctest">Sinab koʻrish (admin guruhiga)</button><button class="btn p" data-a="bcgo">Hammaga yuborish</button></div></div>
+<div id="bcst">${bcStatus()}</div>`};
+async function bcLoad(){
+  try{BC.info=await api('/api/admin/bc')}catch(e){return}
+  if(tab!=='bc')return;
+  const s=$('bcst');if(s)s.innerHTML=bcStatus();const a=$('bca');if(a)a.textContent=BC.info.audience;
+  if(BC.info.job&&BC.info.job.state==='running')setTimeout(bcLoad,2000);
+}
+function bcUp(blob,name,mime){return new Promise((ok,no)=>{const x=new XMLHttpRequest();x.open('POST','/api/admin/bc/file?name='+encodeURIComponent(name)+'&mime='+encodeURIComponent(mime));
+  x.upload.onprogress=e=>{const t=$('bcup');if(t&&e.lengthComputable)t.textContent='Yuklanmoqda… '+Math.round(e.loaded/e.total*100)+'%'};
+  x.onload=()=>{let j={};try{j=JSON.parse(x.responseText)}catch(e){}x.status===200?ok(j):no(new Error(j.error||'Faylni yuklab boʻlmadi'))};x.onerror=()=>no(new Error('Aloqa uzildi, qayta urinib koʻring'));x.send(blob)})}
+async function bcAttach(f){
+  if(f.size>48*1048576)throw new Error('Fayl 48 MB dan kichik boʻlishi kerak. Videoni qisqartiring');
+  let blob=f,name=f.name||'fayl',mime=f.type||'application/octet-stream';
+  if(/^image\/(jpeg|png|webp|heic|heif)$/i.test(mime)){try{blob=dataToBlob(await toJpeg(f));mime='image/jpeg';name=name.replace(/\.\w+$/,'')+'.jpg'}catch(e){}}
+  BC.busy=true;view();
+  try{const r=await bcUp(blob,name,mime);BC.fid=r.fid;BC.name=r.name;BC.kind=r.kind;BC.size=r.size;BC.prev=r.kind==='photo'||r.kind==='animation'?URL.createObjectURL(blob):''}
+  finally{BC.busy=false;view()}
+}
+async function bcSend(test){
+  const text=BC.text.trim();if(!text&&!BC.fid)throw new Error('Xabar matnini yozing yoki rasm/video tanlang');
+  if(!test&&!confirm(`${BC.info?BC.info.audience:0} ta mijozga xabar yuborilsinmi? Yuborilgan xabarni qaytarib boʻlmaydi.`))return;
+  const r=await api('/api/admin/bc/send',{text,fid:BC.fid,menu:BC.menu,test});
+  if(test){if(r.ok)toast('Sinov xabari admin guruhiga yuborildi');else throw new Error(r.error||'Yuborib boʻlmadi');return}
+  toast('Yuborish boshlandi');BC.fid='';BC.name='';BC.prev='';BC.text='';view();bcLoad();
+}
+const ordTab=(nw,pr,ar,td)=>`<div class="st"><div class="box"><b>${nw}</b>Yangi</div><div class="box"><b>${pr}</b>Jarayonda</div><div class="box"><b>${fmt(td.s)}</b>Bugungi tushum · ${td.n} ta yetkazildi</div></div>${chips([['act','Faol buyurtmalar'+(nw+pr?` (${nw+pr})`:'')],['done','Tugagan'+(ar?` (${ar})`:'')]],SUB.orders,'osub')}${SUB.orders==='act'?(D.tg.on?'':H('Telegram ulanmagan: buyurtma holatini shu yerdan oʻzgartirasiz.'))+ordV(false):H(`Yetkazilgan va bekor qilingan buyurtmalar ${D.keep===0?'darhol':D.keep+' kundan keyin'} roʻyxatdan oʻchadi. Statistika esa saqlanib qoladi.`)+ordV(true)}`;
+const siteV=()=>chips([['slides','Bosh sahifa slaydlari'],['gallery','Galereya'],['about','Biz haqimizda']],SUB.site,'ssub')+(SUB.site==='slides'?H('Saytning eng tepasidagi katta rasmli slaydlar. Soʻzni <b>*yulduzcha*</b> ichiga olsangiz, u oltin rangda chiqadi.')+slV():SUB.site==='gallery'?galV():abV());
 function view(){
   const nw=D.orders.filter(o=>o.st===0).length,pr=D.orders.filter(o=>o.st===1||o.st===2).length,ar=D.orders.filter(o=>o.st>=3).length,td=D.today||{n:0,s:0};
-  const T={orders:'Buyurtmalar'+(nw?` (${nw})`:''),archive:'Arxiv'+(ar?` (${ar})`:''),stats:'Statistika',users:'Mijozlar',menu:'Menyu',slides:'Slayderlar',gallery:'Galereya',about:'Biz haqimizda',set:'Sozlamalar'};
-  A.innerHTML=`<header><b>Marakand · Boshqaruv</b><span><a href="/" target="_blank" rel="noopener">Saytni koʻrish</a> &nbsp; <button class="btn" data-a="lo">Chiqish</button></span></header><div class="w"><div class="tabs">${Object.entries(T).map(([k,v])=>`<button class="btn ${tab===k?'on':''}" data-a="tab" data-i="${k}">${v}</button>`).join('')}</div>
-${tab==='archive'?`<div class="hint">Yetkazilgan va bekor qilingan buyurtmalar ${D.keep===0?'darhol':D.keep+' kundan keyin'} avtomatik oʻchiriladi. Statistika esa saqlanib qoladi.</div>${ordV(true)}`:tab==='orders'?`<div class="st"><div class="box"><b>${nw}</b>Yangi</div><div class="box"><b>${pr}</b>Jarayonda</div><div class="box"><b>${fmt(td.s)}</b>Bugungi tushum · ${td.n} ta yetkazildi</div></div>${D.tg.on?'':'<div class="hint">Telegram ulanmagan: holatni shu yerdan oʻzgartirasiz. Telegram ulansa, holat bot tugmalari orqali yuritiladi.</div>'}${ordV(false)}`:tab==='stats'?stV():tab==='users'?uV():tab==='menu'?menuV():tab==='slides'?slV():tab==='gallery'?galV():tab==='about'?abV():setV()}</div>`;
+  const T={orders:'Buyurtmalar'+(nw?` (${nw})`:''),menu:'Menyu',stats:'Statistika',users:'Mijozlar',bc:'Xabarlar',site:'Sayt',set:'Sozlamalar'};
+  A.innerHTML=`<header><b>Marakand · Boshqaruv paneli</b><span><a href="/" target="_blank" rel="noopener">Saytni koʻrish</a> &nbsp; <button class="btn" data-a="lo">Chiqish</button></span></header><div class="w"><div class="tabs">${Object.entries(T).map(([k,v])=>`<button class="btn ${tab===k?'on':''}" data-a="tab" data-i="${k}">${v}</button>`).join('')}</div>
+${tab==='orders'?ordTab(nw,pr,ar,td):tab==='menu'?menuV():tab==='stats'?stV():tab==='users'?uV():tab==='bc'?bcV():tab==='site'?siteV():setV()}</div>`;
 }
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-a]');if(!t||!D)return;e.stopPropagation();
   const a=t.dataset.a,i=+t.dataset.i,p=t.dataset.p;
   run(async()=>{
-    if(a==='tab'){tab=t.dataset.i;view();if(tab==='stats'&&!SS.data)loadStats();if(tab==='users')loadUsers()}
+    if(a==='tab'){tab=t.dataset.i;view();if(tab==='stats'&&!SS.data)loadStats();if(tab==='users')loadUsers();if(tab==='bc')bcLoad()}
     else if(a==='sp'){SS.p=t.dataset.i;if(SS.p==='c'){if(!SS.from)[SS.from,SS.to]=preRange('7');view()}else loadStats()}
     else if(a==='sgo'){SS.from=$('sf').value;SS.to=$('sto').value;loadStats()}
     else if(a==='lo'){await api('/api/admin/logout',{});D=null;login()}
     else if(a==='resend'){const r=await api('/api/admin/resend',{id:i});toast(r.ok?'Telegramga yuborildi':'Yuborib boʻlmadi. Sozlamalarda testni tekshiring',!r.ok);await load(true)}
     else if(a==='img'){if(e.target.closest('.x'))return;const f=(await pickFiles(false))[0];if(!f)return;toast('Yuklanmoqda…');setP(D,p,await upload(f));if(p==='about.img')await saveAbout();else{view();toast('Rasm yuklandi')}}
     else if(a==='imgx'){setP(D,p,'');if(p==='about.img')await saveAbout();else view()}
-    else if(a==='madd'){D.menu.push({id:Date.now(),n:'',c:D.menu.length?D.menu[D.menu.length-1].c:'Taomlar',p:0,d:'',a:1,img:'',e:''});view()}
-    else if(a==='mdel'){if(confirm('Taom oʻchirilsinmi?')){D.menu.splice(i,1);view()}}
-    else if(a==='msave'){const r=await api('/api/admin/menu',{menu:D.menu});D.menu=r.menu;view();toast('Menyu saqlandi')}
+    else if(a==='madd'){D.menu.unshift({id:Date.now(),n:'',c:MF!=='Hammasi'?MF:(D.cats[0]||''),p:0,d:'',a:1,img:'',e:''});markDirty();view()}
+    else if(a==='mdel'){if(confirm('Taom oʻchirilsinmi?')){D.menu.splice(i,1);markDirty();view()}}
+    else if(a==='msave'){
+      const bad=D.menu.findIndex(m=>!String(m.n).trim()||!(m.p>0)||!m.c);
+      if(bad>=0){const m=D.menu[bad];MF='Hammasi';view();throw new Error(!m.c?'Taom uchun kategoriyani tanlang':!String(m.n).trim()?'Taom nomini yozing':`“${m.n}” taomining narxini kiriting`)}
+      const r=await api('/api/admin/menu',{menu:D.menu,cats:D.cats});D.menu=r.menu;D.cats=r.cats;DIRTY=false;view();toast('Menyu saqlandi')}
+    else if(a==='cadd'){const v=$('ncat').value.trim().slice(0,30);if(!v)throw new Error('Kategoriya nomini yozing');if(D.cats.some(c=>c.toLowerCase()===v.toLowerCase()))throw new Error('Bunday kategoriya allaqachon bor');D.cats.push(v);markDirty();view();$('ncat').focus()}
+    else if(a==='cdel'){const c=D.cats[i],n=D.menu.filter(m=>m.c===c).length;if(n)throw new Error(`“${c}” kategoriyasida ${n} ta taom bor. Avval ularni boshqa kategoriyaga oʻtkazing`);if(confirm('Kategoriya oʻchirilsinmi?')){D.cats.splice(i,1);markDirty();view()}}
+    else if(a==='cup'||a==='cdn'){const j=a==='cup'?i-1:i+1;[D.cats[i],D.cats[j]]=[D.cats[j],D.cats[i]];markDirty();view()}
+    else if(a==='mf'){MF=t.dataset.i;view()}
+    else if(a==='bcpick'){const f=(await pickFiles(false,'image/*,video/*'))[0];if(f)await bcAttach(f)}
+    else if(a==='bcx'){BC.fid='';BC.name='';BC.prev='';view()}
+    else if(a==='bctest')await bcSend(true);
+    else if(a==='bcgo')await bcSend(false);
+    else if(a==='bccancel'){await api('/api/admin/bc/cancel',{});toast('Toʻxtatilmoqda');bcLoad()}
+    else if(a==='osub'){SUB.orders=t.dataset.i;view()}
+    else if(a==='ssub'){SUB.site=t.dataset.i;view()}
+    else if(a==='setsave'){const r=await api('/api/admin/settings',{settings:D.settings});D.settings=r.settings;D.gmap=r.gmap;view();toast('Saqlandi')}
     else if(a==='sadd'){D.slides.push({id:Date.now(),a:1,k:'',h:'Yangi *slayd*',p:'',b:'Menyuni koʻrish',l:'#menu',i1:'',i2:'',ic:'',bt:'',bs:''});view()}
     else if(a==='sdel'){if(confirm('Slayd oʻchirilsinmi?')){D.slides.splice(i,1);view()}}
     else if(a==='sup'||a==='sdn'){const j=a==='sup'?i-1:i+1;[D.slides[i],D.slides[j]]=[D.slides[j],D.slides[i]];view()}
