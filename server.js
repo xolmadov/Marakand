@@ -1,4 +1,4 @@
-const http=require('http'),fs=require('fs'),path=require('path'),crypto=require('crypto');
+const http=require('http'),fs=require('fs'),path=require('path'),crypto=require('crypto'),zlib=require('zlib');
 // .env fayli (ixtiyoriy): KEY=VALUE qatorlari
 try{for(const l of fs.readFileSync(path.join(__dirname,'.env'),'utf8').split(/\r?\n/)){const m=l.match(/^\s*([A-Z_]+)\s*=\s*(.*?)\s*$/);if(m&&!(m[1] in process.env))process.env[m[1]]=m[2].replace(/^["']|["']$/g,'')}}catch{}
 const E=process.env,PORT=+E.PORT||3000,PASS=E.ADMIN_PASSWORD||'',AP='/'+(E.ADMIN_PATH||'panel').replace(/^\/+/,''),SEC=E.SECRET||crypto.randomBytes(32).toString('hex'),TG=E.TG_API||'https://api.telegram.org';
@@ -28,21 +28,14 @@ const seedSlides=[
 {id:4,a:1,k:'Kofe olib ketish',h:'Kafemizga *xush kelibsiz*',p:'Qulay muhit, serviz dasturxon va mehmondoʻst xizmat. Kofeni oʻzingiz bilan olib ketishingiz ham mumkin.',b:'Manzilimiz',l:'#contact',i1:'/photos/p1.jpg',i2:'/photos/p3.jpg',ic:'clock',bt:'07:00 – 23:00',bs:'Ish vaqti'}];
 const seedGal=[{id:1,img:'/photos/p1.jpg',t:''},{id:2,img:'/photos/p3.jpg',t:''},{id:3,img:'/photos/p2.jpg',t:''}];
 // ---- kafe maʼlumotlari (admin paneldan oʻzgartiriladi) va menyu kategoriyalari ----
-const SET_DEF={phone:'1414',address:'Poytugʻ, Alisher Navoiy MFY, Alisher Navoiy 2-berk koʻchasi, 3',hours:'07:00 – 23:00',rating:'4.2 · Yandex Xaritalar',telegram:'',instagram:'https://www.instagram.com/marakand_poytug',googleKey:'',lat:40.892109,lng:72.252442,delFirst:5000,delKm:2500,delMax:0,roadK:1.3};
+const SET_DEF={phone:'1414',address:'Poytugʻ, Alisher Navoiy MFY, Alisher Navoiy 2-berk koʻchasi, 3',hours:'07:00 – 23:00',rating:'4.2 · Yandex Xaritalar',telegram:'',instagram:'https://www.instagram.com/marakand_poytug',googleKey:'',lat:40.892109,lng:72.252442,delFirst:5000,delKm:2500};
 const urlOk=s=>/^https?:\/\/[^\s<>"']{3,200}$/i.test(String(s||'').trim())?String(s).trim():'';
 const numIn=(v,min,max,d)=>{const x=v===''||v==null?NaN:+v;return Number.isFinite(x)&&x>=min&&x<=max?x:d};
-const cleanSettings=s=>{s=s||{};return{phone:cl(s.phone,30)||SET_DEF.phone,address:cl(s.address,200)||SET_DEF.address,hours:cl(s.hours,40)||SET_DEF.hours,rating:cl(s.rating,60),telegram:urlOk(s.telegram),instagram:urlOk(s.instagram),googleKey:cl(s.googleKey,80).replace(/[^\w-]/g,''),lat:numIn(s.lat,-90,90,SET_DEF.lat),lng:numIn(s.lng,-180,180,SET_DEF.lng),delFirst:Math.round(numIn(s.delFirst,0,1e6,SET_DEF.delFirst)),delKm:Math.round(numIn(s.delKm,0,1e6,SET_DEF.delKm)),delMax:numIn(s.delMax,0,200,0),roadK:numIn(s.roadK,1,3,SET_DEF.roadK)}};
+const cleanSettings=s=>{s=s||{};return{phone:cl(s.phone,30)||SET_DEF.phone,address:cl(s.address,200)||SET_DEF.address,hours:cl(s.hours,40)||SET_DEF.hours,rating:cl(s.rating,60),telegram:urlOk(s.telegram),instagram:urlOk(s.instagram),googleKey:cl(s.googleKey,80).replace(/[^\w-]/g,''),lat:numIn(s.lat,-90,90,SET_DEF.lat),lng:numIn(s.lng,-180,180,SET_DEF.lng),delFirst:Math.round(numIn(s.delFirst,0,1e6,SET_DEF.delFirst)),delKm:Math.round(numIn(s.delKm,0,1e6,SET_DEF.delKm))}};
 const cleanCats=a=>[...new Set((Array.isArray(a)?a:[]).map(x=>cl(x,30)).filter(Boolean))].slice(0,30);
-let db={menu:seedMenu,cats:cleanCats(seedMenu.map(m=>m.c)),settings:{},orders:[],slides:seedSlides,gallery:seedGal,about:{img:'/photos/p1.jpg'},users:{},stats:{},bc:[],lastId:1000};
+let db={menu:seedMenu,cats:cleanCats(seedMenu.map(m=>m.c)),settings:{},orders:[],slides:seedSlides,gallery:seedGal,about:{img:'/photos/p1.jpg'},users:{},stats:{},lastId:1000};
 const cfgFull=()=>({...SET_DEF,...db.settings});
 const cfgPub=()=>{const c=cfgFull();return{phone:c.phone,address:c.address,hours:c.hours,rating:c.rating,telegram:c.telegram,instagram:c.instagram,googleKey:c.googleKey||cl(E.GOOGLE_MAPS_KEY,80).replace(/[^\w-]/g,''),lat:c.lat,lng:c.lng,delFirst:c.delFirst,delKm:c.delKm}};
-// Yetkazish narxi: kafedan mijozgacha masofa (toʻgʻri chiziq x yoʻl koeffitsienti), boshlangan har km hisoblanadi
-const hav=(a,b,c,d)=>{const r=x=>x*Math.PI/180,p=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 12742*Math.asin(Math.sqrt(p))};
-function calcDelivery(lat,lng){
-  const c=cfgFull(),km=Math.round(hav(c.lat,c.lng,lat,lng)*c.roadK*10)/10;
-  if(c.delMax>0&&km>c.delMax)return{ok:false,km,max:c.delMax};
-  const units=Math.max(1,Math.ceil(km-1e-9));return{ok:true,km,units,fee:c.delFirst+(units-1)*c.delKm};
-}
 // ---- Supabase (REST, kutubxonasiz) ----
 const sbh=x=>({apikey:SB.k,...(SB.k.startsWith('sb_')?{}:{authorization:'Bearer '+SB.k}),...x});
 async function sbFetch(url,opt,tries=3){let err;for(let i=0;i<tries;i++){try{const r=await fetch(url,opt);if(r.ok||r.status===409)return r;err=new Error('Supabase '+r.status+': '+(await r.text()).slice(0,180))}catch(e){err=e}await new Promise(s=>setTimeout(s,400*(i+1)))}throw err}
@@ -116,12 +109,12 @@ const btn=(t,k,o)=>({text:t,callback_data:`o|${o.id}|${k}`});
 function kb(o,role){
   let r=[];
   if(role==='a'){
-    if(o.st===0)r=[[btn('✅ Qabul qilish','acc',o),btn('❌ Bekor qilish','cx',o)]];
-    else if(o.st===1&&kst(o)===1)r=[[btn('🍳 Tayyorlanmoqda','cook',o)],[btn('❌ Bekor qilish','cx',o)]];
-    else if(o.st===1&&kst(o)===2)r=[[btn('🍽 Tayyor','rdy',o)],[btn('❌ Bekor qilish','cx',o)]];
+    if(o.st===0)r=[[btn('Qabul qilish','acc',o),btn('Bekor qilish','cx',o)]];
+    else if(o.st===1&&kst(o)===1)r=[[btn('Tayyorlanmoqda','cook',o)],[btn('Bekor qilish','cx',o)]];
+    else if(o.st===1&&kst(o)===2)r=[[btn('Tayyor','rdy',o)],[btn('Bekor qilish','cx',o)]];
   }else{
-    if(o.st===1)r=[[o.cr?btn('🛵 Yoʻlda','way',o):btn('🙋 Qabul qilish','cl',o)]];
-    else if(o.st===2)r=[[btn('📦 Yetkazildi','dl',o)]];
+    if(o.st===1)r=[[o.cr?btn('Yoʻlda','way',o):btn('Qabul qilish','cl',o)]];
+    else if(o.st===2)r=[[btn('Yetkazildi','dl',o)]];
   }
   return {inline_keyboard:r}}
 async function tgSend(o,role){
@@ -149,16 +142,16 @@ const renderChats=o=>queue(o.id,async()=>{
   await saveOrder(o).catch(()=>{});
 });
 const DM={
-  acc:o=>`📝 Buyurtmangiz #${o.id} qabul qilindi.`,
-  cook:o=>`🍳 Buyurtmangiz #${o.id} tayyorlanmoqda.`,
-  rdy:o=>`🍽 Buyurtmangiz #${o.id} tayyor! Kuryer tez orada yoʻlga chiqadi.`,
-  cl:o=>`🙋 Kuryer <b>${h(String((o.cr||{}).name||'').split(' ')[0])}</b> buyurtmangizni qabul qildi.`,
-  way:o=>`🛵 Buyurtmangiz #${o.id} yoʻlda!`+(o.cr?` Kuryer: <b>${h(String(o.cr.name).split(' ')[0])}</b>.`:''),
-  dl:o=>`✅ Buyurtmangiz #${o.id} yetkazildi. Yoqimli ishtaha! 🍽`,
-  cx:o=>`❌ Buyurtmangiz #${o.id} bekor qilindi.`};
+  acc:o=>`Buyurtmangiz #${o.id} qabul qilindi.`,
+  cook:o=>`Buyurtmangiz #${o.id} tayyorlanmoqda.`,
+  rdy:o=>`Buyurtmangiz #${o.id} tayyor. Kuryer tez orada yoʻlga chiqadi.`,
+  cl:o=>`Kuryer <b>${h(String((o.cr||{}).name||'').split(' ')[0])}</b> buyurtmangizni qabul qildi.`,
+  way:o=>`Buyurtmangiz #${o.id} yoʻlda.`+(o.cr?` Kuryer: <b>${h(String(o.cr.name).split(' ')[0])}</b>.`:''),
+  dl:o=>`Buyurtmangiz #${o.id} yetkazildi. Yoqimli ishtaha!`,
+  cx:o=>`Buyurtmangiz #${o.id} bekor qilindi.`};
 async function notifyUser(o,k){
   if(!o.uid||!E.BOT_TOKEN||!DM[k])return;
-  try{await tgCall('sendMessage',{chat_id:o.uid,text:DM[k](o),parse_mode:'HTML',...(WA?{reply_markup:{inline_keyboard:[[{text:'📦 Buyurtmani kuzatish',web_app:{url:WA+'/?open=orders'}}]]}}:{})})}
+  try{await tgCall('sendMessage',{chat_id:o.uid,text:DM[k](o),parse_mode:'HTML',...(WA?{reply_markup:{inline_keyboard:[[{text:'Buyurtmani kuzatish',web_app:{url:WA+'/?open=orders'}}]]}}:{})})}
   catch(e){/* foydalanuvchi botni ishga tushirmagan boʻlishi mumkin */}
 }
 const KST={acc:1,way:2,dl:3,cx:4};
@@ -188,7 +181,7 @@ function transition(o,k,by){
     if(k==='dl'&&r==='c'&&!o.cr)o.cr={id:by.id,name:by.name};
     if(o.st===3&&o.uid)userDelivered(o);
   }
-  return{ok:true,msg:{acc:'✅ Qabul qilindi',cook:'🍳 Tayyorlanmoqda deb belgilandi',rdy:'🍽 Tayyor deb belgilandi',cl:'🙋 Buyurtma sizda',way:'🛵 Yoʻlda deb belgilandi',dl:'📦 Yetkazildi deb belgilandi',cx:'❌ Bekor qilindi'}[k]};
+  return{ok:true,msg:{acc:'Qabul qilindi',cook:'Tayyorlanmoqda deb belgilandi',rdy:'Tayyor deb belgilandi',cl:'Buyurtma sizda',way:'Yoʻlda deb belgilandi',dl:'Yetkazildi deb belgilandi',cx:'Bekor qilindi'}[k]};
 }
 // Admin paneldan (zaxira usul) holatni toʻgʻridan-toʻgʻri oʻzgartirish
 function panelSet(o,st){
@@ -217,11 +210,10 @@ async function onCb(cq){
 async function onUpdate(u){
   if(u.callback_query)return onCb(u.callback_query);
   const m=u.message;if(!m||!m.text)return;const cmd=m.text.split(/[\s@]/)[0];
-  if(cmd==='/id')return tgCall('sendMessage',{chat_id:m.chat.id,text:`Chat ID: <code>${m.chat.id}</code>`,parse_mode:'HTML'}).catch(()=>{});
   if(cmd==='/start'&&m.chat.type==='private'){
     const f=m.from||{};if(f.id){try{const x=touchUser(f);if(x.bl){delete x.bl;saveUser(x)}}catch(e){}}
     const first=h(cl(f.first_name||f.username||'doʻstim',40));
-    return tgCall('sendMessage',{chat_id:m.chat.id,parse_mode:'HTML',text:`Assalomu alaykum, <b>${first}</b>! 👋\n\n<b>Marakand cafe</b> botiga xush kelibsiz!\nBizda barcha turdagi mazali milliy taomlarni topishingiz mumkin 🍽`,...(WA?{reply_markup:{inline_keyboard:[[{text:'🍽 Menyuni ochish',web_app:{url:WA}}],[{text:'📦 Buyurtmalarim',web_app:{url:WA+'/?open=orders'}}]]}}:{})}).catch(()=>{});
+    return tgCall('sendMessage',{chat_id:m.chat.id,parse_mode:'HTML',text:`Assalomu alaykum, <b>${first}</b>!\n\n<b>Marakand cafe</b> botiga xush kelibsiz!\nBizda barcha turdagi mazali milliy taomlarni topishingiz mumkin.`,...(WA?{reply_markup:{inline_keyboard:[[{text:'Menyuni ochish',web_app:{url:WA}}],[{text:'Buyurtmalarim',web_app:{url:WA+'/?open=orders'}}]]}}:{})}).catch(()=>{});
   }
 }
 async function poll(){
@@ -234,10 +226,10 @@ async function tgStart(){
   if(!E.BOT_TOKEN)return;
   try{
     const me=await tgCall('getMe');BOT.un=me.username||'';
-    await tgCall('setMyCommands',{commands:[{command:'start',description:'Menyuni ochish'},{command:'id',description:'Chat ID ni koʻrsatish'}]}).catch(()=>{});
+    await tgCall('setMyCommands',{commands:[{command:'start',description:'Boshlash'}]}).catch(()=>{});
     if(WA){
       await tgCall('setWebhook',{url:WA+'/tg/hook',secret_token:TGS,allowed_updates:['message','callback_query'],max_connections:10});BOT.mode='webhook';
-      await tgCall('setChatMenuButton',{menu_button:{type:'web_app',text:'🍽 Menyu',web_app:{url:WA}}}).catch(e=>console.error('Menyu tugmasini oʻrnatib boʻlmadi:',e.message));
+      await tgCall('setChatMenuButton',{menu_button:{type:'web_app',text:'Menyu',web_app:{url:WA}}}).catch(e=>console.error('Menyu tugmasini oʻrnatib boʻlmadi:',e.message));
     }else{await tgCall('deleteWebhook',{});BOT.mode='polling';poll()}
     console.log('Telegram bot: @'+BOT.un,'|',BOT.mode==='webhook'?'webhook':'polling (mahalliy)',CH_C?'| kuryerlar chati ulangan':'');
   }catch(e){console.error('Telegram bot ishga tushmadi:',e.message)}
@@ -278,7 +270,7 @@ const BM={photo:['sendPhoto','photo'],video:['sendVideo','video'],animation:['se
 const fileIdOf=(kind,r)=>kind==='photo'?r.photo[r.photo.length-1].file_id:kind==='video'?r.video.file_id:kind==='animation'?(r.animation||r.document).file_id:r.document.file_id;
 // Bitta chatga xabar yuboradi. Fayl birinchi marta yuklanadi, keyin Telegram file_id si bilan qayta ishlatiladi
 async function bcSendOne(chat,spec){
-  const mk=spec.menu&&WA?{inline_keyboard:[[{text:'🍽 Menyuni ochish',web_app:{url:WA}}]]}:null;
+  const mk=spec.menu&&WA?{inline_keyboard:[[{text:'Menyuni ochish',web_app:{url:WA}}]]}:null;
   if(!spec.file)return tgCall('sendMessage',{chat_id:chat,text:spec.text,...(mk?{reply_markup:mk}:{})});
   const cap=spec.text&&spec.text.length<=1024?spec.text:'';
   const send=async kind=>{
@@ -307,8 +299,6 @@ async function bcRun(job,spec,recips){
   }
   job.state=job.cancel?'cancelled':'done';job.end=Date.now();
   if(spec.file){BCF.delete(spec.file.fid);fs.unlink(spec.file.path,()=>{})}
-  db.bc.unshift({id:job.id,t:job.t,end:job.end,state:job.state,total:job.total,ok:job.ok,fail:job.fail,bl:job.bl,text:job.text,kind:job.kind});db.bc=db.bc.slice(0,20);
-  try{await saveK('bc')}catch(e){console.error('Xabarlar tarixini saqlash xatosi:',e.message)}
 }
 async function bcUpload(req,res){
   const q=new URL(req.url,'http://x').searchParams,name=cl(q.get('name')||'fayl',80).replace(/[^\w.\- ]/g,'_')||'fayl',mime=cl(q.get('mime')||'application/octet-stream',80);
@@ -321,7 +311,7 @@ async function bcUpload(req,res){
   const kind=kindOf(mime,n);BCF.set(fid,{fid,path:fp,name,mime,kind,size:n,t:Date.now()});
   return send(res,200,{fid,name,kind,size:n});
 }
-const bcInfo=()=>({audience:Object.values(db.users).filter(x=>!x.bl).length,total:Object.keys(db.users).length,job:bc.job,hist:db.bc,bot:!!E.BOT_TOKEN,menu:!!WA,admin:!!CH_A});
+const bcInfo=()=>({audience:Object.values(db.users).filter(x=>!x.bl).length,total:Object.keys(db.users).length,job:bc.job,bot:!!E.BOT_TOKEN,menu:!!WA,admin:!!CH_A});
 async function bcStart(b,res){
   if(!E.BOT_TOKEN)return send(res,400,{error:'Telegram bot ulanmagan'});
   if(bc.job&&bc.job.state==='running')return send(res,409,{error:'Hozir boshqa xabar yuborilmoqda. Tugashini kuting'});
@@ -346,14 +336,15 @@ const authed=req=>{const m=(req.headers.cookie||'').match(/(?:^|; )s=(\d+)\.([a-
 const tries=new Map(),ordT=new Map(),postT=new Map();
 setInterval(()=>{const n=Date.now();for(const m of[tries,ordT,postT])for(const[k,v]of m)if(Array.isArray(v)?!v.some(t=>n-t<6e5):n-v.t>6e5)m.delete(k)},6e5).unref();
 const body=(req,max=2e5)=>new Promise((r,j)=>{let d='';req.on('data',c=>{d+=c;if(d.length>max){req.destroy();j(new Error('big'))}});req.on('end',()=>{try{r(JSON.parse(d||'{}'))}catch{j(new Error('json'))}})});
-const send=(res,c,o,hd={})=>{res.writeHead(c,{'content-type':'application/json; charset=utf-8','cache-control':'no-store',...hd});res.end(JSON.stringify(o))};
+const gz=(res,body,h)=>{if(body.length>1024&&/\bgzip\b/.test((res.req&&res.req.headers['accept-encoding'])||'')){h['content-encoding']='gzip';h.vary='accept-encoding';return zlib.gzipSync(body)}return body};
+const send=(res,c,o,hd={})=>{const h={'content-type':'application/json; charset=utf-8','cache-control':'no-store',...hd};const b=gz(res,Buffer.from(JSON.stringify(o)),h);res.writeHead(c,h);res.end(b)};
 const sendFile=(res,f,type,hd={})=>fs.readFile(f,(e,d)=>{if(e){res.writeHead(404);return res.end('404')}res.writeHead(200,{'content-type':type,'x-content-type-options':'nosniff',...hd});res.end(d)});
 const page=(res,f,extra={},frame=false)=>fs.readFile(path.join(PUB,f),'utf8',(e,d)=>{
   if(e){res.writeHead(404);return res.end('404')}
   const n=crypto.randomBytes(16).toString('base64');
   if(f==='index.html')d=d.replace('/*SETTINGS*/','Object.assign(CFG,'+JSON.stringify(cfgPub()).replace(/</g,'\\u003c')+');');
-  res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-cache',...(frame?{}:{'x-frame-options':'DENY'}),'content-security-policy':CSP(n,frame),...extra});
-  res.end(d.replace(/<script>/g,'<script nonce="'+n+'">'));
+  const h={'content-type':'text/html; charset=utf-8','cache-control':'no-cache',...(frame?{}:{'x-frame-options':'DENY'}),'content-security-policy':CSP(n,frame),...extra};
+  const b=gz(res,Buffer.from(d.replace(/<script>/g,'<script nonce="'+n+'">')),h);res.writeHead(200,h);res.end(b);
 });
 const fail=(res,e)=>{console.error('Saqlash xatosi:',e.message);send(res,500,{error:'Saqlab boʻlmadi: '+e.message})};
 const server=http.createServer(async(req,res)=>{try{
@@ -370,11 +361,6 @@ const server=http.createServer(async(req,res)=>{try{
     if(!SB&&(m=u.match(/^\/img\/([\w-]+\.jpg)$/)))return sendFile(res,path.join(UP,m[1]),'image/jpeg',{'cache-control':'public, max-age=2592000'});
     if(u==='/api/menu')return send(res,200,db.menu.filter(x=>x.a));
     if(u==='/api/cats')return send(res,200,db.cats);
-    if(u==='/api/delivery'){
-      const q=new URL(req.url,'http://x').searchParams,la=+q.get('lat'),lo=+q.get('lng');
-      if(!q.get('lat')||!q.get('lng')||!Number.isFinite(la)||!Number.isFinite(lo)||Math.abs(la)>90||Math.abs(lo)>180)return send(res,400,{error:'Joylashuv notoʻgʻri'});
-      return send(res,200,calcDelivery(la,lo));
-    }
     if(u==='/api/slides')return send(res,200,db.slides.filter(x=>x.a));
     if(u==='/api/gallery')return send(res,200,db.gallery);
     if(u==='/api/about')return send(res,200,db.about);
@@ -425,14 +411,12 @@ const server=http.createServer(async(req,res)=>{try{
     if(!phone)return send(res,400,{error:'Telefon raqamini toʻliq kiriting: +998 XX XXX XX XX'});
     if(!addr)return send(res,400,{error:'Yetkazish manzilini kiriting'});
     const la=b.lat==null||b.lat===''?NaN:+b.lat,lo=b.lng==null||b.lng===''?NaN:+b.lng,geo=Number.isFinite(la)&&Number.isFinite(lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180;
-    if(!geo)return send(res,400,{error:'Yetkazish narxini hisoblash uchun joylashuvingizni xaritada belgilang'});
-    const dl=calcDelivery(la,lo);if(!dl.ok)return send(res,400,{error:`Kechirasiz, bu manzil yetkazish hududidan tashqarida (eng uzoq masofa ${dl.max} km)`});
-    const tu=tgUser(req),o={id:++db.lastId,t:now,name,phone,addr,note:cl(b.note,300),pay:'Naqd',items,sub:total,fee:dl.fee,km:dl.km,total:total+dl.fee,st:0,tg:null,log:[{k:'new',t:now}],m:{},...(tu?{uid:tu.id}:{}),...(geo?{lat:+la.toFixed(6),lng:+lo.toFixed(6)}:{})};
+    const tu=tgUser(req),o={id:++db.lastId,t:now,name,phone,addr,note:cl(b.note,300),pay:'Naqd',items,total,st:0,tg:null,log:[{k:'new',t:now}],m:{},...(tu?{uid:tu.id}:{}),...(geo?{lat:+la.toFixed(6),lng:+lo.toFixed(6)}:{})};
     L.push(now);ordT.set(ip,L);db.orders.push(o);
     if(tu){const x=touchUser(tu,true);x.n++;x.ph=phone;x.ad=addr;x.t1=now;saveUser(x)}
     if(SB)sbPut('meta',{lastId:db.lastId}).catch(()=>{});
     await saveOrder(o).catch(e=>console.error('Buyurtmani saqlash xatosi:',e.message));
-    send(res,200,{id:o.id,total:o.total,fee:o.fee,km:o.km});
+    send(res,200,{id:o.id,total:o.total});
     tg(o).then(ok=>{o.tg=ok;return saveOrder(o)}).catch(e=>console.error('Buyurtmani yangilash xatosi:',e.message));
     return;
   }
@@ -485,7 +469,6 @@ async function boot(){
     for(const k of['menu','slides','gallery']){const v=g(k);if(v)db[k]=v;else await saveK(k).catch(e=>console.error('Boshlangʻich maʼlumotni yozib boʻlmadi:',e.message))}
     {const r=rows.find(x=>x.key==='about');if(r&&r.value&&typeof r.value==='object'&&!Array.isArray(r.value))db.about=cleanAbout(r.value);else await saveK('about').catch(e=>console.error('Boshlangʻich maʼlumotni yozib boʻlmadi:',e.message))}
     {const v=g('cats');if(v)db.cats=cleanCats(v);else{db.cats=cleanCats(db.menu.map(m=>m.c));await saveK('cats').catch(e=>console.error('Boshlangʻich maʼlumotni yozib boʻlmadi:',e.message))}}
-    {const v=g('bc');if(v)db.bc=v.slice(0,20)}
     {const r=rows.find(x=>x.key==='settings');if(r&&r.value&&typeof r.value==='object'&&!Array.isArray(r.value))db.settings=cleanSettings(r.value)}
     for(const r of rows)if(String(r.key).startsWith('user:')&&r.value&&r.value.id)db.users[r.value.id]=r.value;
     {const r=rows.find(x=>x.key==='stats');if(r&&r.value&&typeof r.value==='object'&&!Array.isArray(r.value))db.stats=r.value}
@@ -493,10 +476,14 @@ async function boot(){
     const mt=rows.find(x=>x.key==='meta');db.lastId=Math.max(1000,(mt&&mt.value&&+mt.value.lastId)||0);
     await sbFetch(`${SB.u}/storage/v1/bucket`,{method:'POST',headers:sbh({'content-type':'application/json'}),body:JSON.stringify({id:SB.b,name:SB.b,public:true})},1).catch(()=>{});
     setInterval(()=>sbFetch(`${SB.u}/rest/v1/kv?select=key&limit=1`,{headers:sbh()}).catch(e=>console.error('Supabase keep-alive:',e.message)),6*36e5);
-  }else{try{const d=JSON.parse(fs.readFileSync(DB,'utf8'));for(const k of['menu','slides','gallery'])if(Array.isArray(d[k]))db[k]=d[k];if(d.about&&typeof d.about==='object')db.about=cleanAbout(d.about);db.cats=cleanCats(Array.isArray(d.cats)?d.cats:db.menu.map(m=>m.c));if(d.settings&&typeof d.settings==='object')db.settings=cleanSettings(d.settings);if(Array.isArray(d.bc))db.bc=d.bc.slice(0,20);if(d.users&&typeof d.users==='object'&&!Array.isArray(d.users))db.users=d.users;if(d.stats&&typeof d.stats==='object'&&!Array.isArray(d.stats))db.stats=d.stats;if(Array.isArray(d.orders))db.orders=d.orders;db.lastId=Math.max(1000,+d.lastId||0)}catch{}gc()}
+  }else{try{const d=JSON.parse(fs.readFileSync(DB,'utf8'));for(const k of['menu','slides','gallery'])if(Array.isArray(d[k]))db[k]=d[k];if(d.about&&typeof d.about==='object')db.about=cleanAbout(d.about);db.cats=cleanCats(Array.isArray(d.cats)?d.cats:db.menu.map(m=>m.c));if(d.settings&&typeof d.settings==='object')db.settings=cleanSettings(d.settings);if(d.users&&typeof d.users==='object'&&!Array.isArray(d.users))db.users=d.users;if(d.stats&&typeof d.stats==='object'&&!Array.isArray(d.stats))db.stats=d.stats;if(Array.isArray(d.orders))db.orders=d.orders;db.lastId=Math.max(1000,+d.lastId||0)}catch{}gc()}
   for(const m of db.menu)if(!db.cats.includes(m.c))db.cats.push(m.c);
   db.lastId=Math.max(db.lastId,...db.orders.map(o=>+o.id||0),1000);db.orders.forEach(o=>{if(o.st>=3&&!o.done)o.done=Date.now()});
   await purge();setInterval(()=>purge().catch(()=>{}),36e5).unref();
+  // Render bepul rejasi 15 daqiqa soʻrovsiz qolsa uxlab qoladi: har 10 daqiqada oʻz manzilimizga soʻrov yuboramiz
+  if(/^https:\/\//.test(E.RENDER_EXTERNAL_URL||''))setInterval(()=>fetch(E.RENDER_EXTERNAL_URL.replace(/\/+$/,'')+'/healthz',{signal:AbortSignal.timeout(15000)}).catch(()=>{}),10*6e4).unref();
+  // Supabase bepul loyihasi 1 hafta harakatsiz qolsa pauza boʻladi: kuniga ikki marta yengil soʻrov yuboramiz
+  if(SB)setInterval(()=>sbFetch(`${SB.u}/rest/v1/kv?select=key&limit=1`,{headers:sbh()},1).catch(()=>{}),12*36e5).unref();
   server.listen(PORT,()=>{console.log('Marakand: http://localhost:'+PORT,'| admin:',AP,'| maʼlumot:',SB?'Supabase':'mahalliy fayl');if(!PASS)console.warn('DIQQAT: ADMIN_PASSWORD berilmagan, admin kirish ishlamaydi');else if(PASS.length<10)console.warn('DIQQAT: ADMIN_PASSWORD juda qisqa (kamida 10 belgi boʻlsin)');if(!E.SECRET)console.warn('DIQQAT: SECRET berilmagan. Server qayta yonganda admin qayta kirishi kerak boʻladi');if(!tgOn())console.warn('Eslatma: BOT_TOKEN/CHAT_ID yoʻq, buyurtmalar Telegramga yuborilmaydi');else{if(!CH_C)console.warn('Eslatma: COURIER_CHAT_ID yoʻq, kuryerlar chati ishlatilmaydi');if(!WA)console.warn('Eslatma: PUBLIC_URL (https) yoʻq: bot polling rejimida ishlaydi va Mini App tugmasi oʻrnatilmaydi. Mahalliy sinov uchun alohida test bot tokenidan foydalaning, chunki polling ishlayotgan serverning webhookini oʻchiradi')}tgStart()});
 }
 boot();
