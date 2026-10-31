@@ -126,6 +126,7 @@ const markDirty=()=>{DIRTY=true;const e=$('dirty');if(e){e.textContent='Saqlanma
 const catV=()=>`<div class="box"><b>Kategoriyalar</b><div class="hint" style="margin:3px 0 12px">Menyudagi boʻlimlar (masalan: Taomlar, Ichimliklar). Yangisini yozib qoʻshing, nomini oʻzgartiring yoki joyini almashtiring.</div>${D.cats.map((c,i)=>`<div class="cr k"><input data-cat="${i}" value="${esc(c)}" maxlength="30"><span class="bd">${D.menu.filter(m=>m.c===c).length} ta</span><button class="btn" data-a="cup" data-i="${i}" ${i?'':'disabled'}>↑</button><button class="btn" data-a="cdn" data-i="${i}" ${i<D.cats.length-1?'':'disabled'}>↓</button><button class="btn d" data-a="cdel" data-i="${i}">Oʻchirish</button></div>`).join('')||'<div class="hint">Hozircha kategoriya yoʻq. Birinchisini qoʻshing.</div>'}<div class="cr" style="margin-top:10px"><input id="ncat" placeholder="Yangi kategoriya nomi" maxlength="30"><button class="btn p" data-a="cadd">+ Qoʻshish</button></div></div>`;
 const dish=(m,i)=>`<div class="box dish"><div class="dtop">${phs(m.img,'menu.'+i+'.img')}<div class="f" style="flex:1;min-width:0"><input data-p="menu.${i}.n" value="${esc(m.n)}" placeholder="Taom nomi"><div class="f2"><select data-p="menu.${i}.c">${D.cats.includes(m.c)?'':`<option value="${esc(m.c)}" selected disabled>${m.c?esc(m.c):'Kategoriyani tanlang'}</option>`}${D.cats.map(c=>`<option value="${esc(c)}" ${m.c===c?'selected':''}>${esc(c)}</option>`).join('')}</select><input type="number" inputmode="numeric" data-p="menu.${i}.p" value="${m.p}" placeholder="Narxi (soʻm)"></div></div></div><input data-p="menu.${i}.d" value="${esc(m.d)}" placeholder="Qisqa tavsif (masalan: goʻsht va sabzi bilan)" style="margin-top:8px"><div class="r" style="margin-top:10px"><label class="chk"><input type="checkbox" data-p="menu.${i}.a" ${m.a?'checked':''}> Saytda koʻrsatish</label><button class="btn d" data-a="mdel" data-i="${i}">Oʻchirish</button></div></div>`;
 const menuV=()=>H('Taomlar va kategoriyalarni shu yerda boshqarasiz. Oʻzgartirgach, pastdagi «Saqlash» tugmasini bosing.')+catV()+chips([['Hammasi','Hammasi ('+D.menu.length+')'],...D.cats.map(c=>[c,c])],MF,'mf')+(D.menu.map((m,i)=>MF==='Hammasi'||m.c===MF?dish(m,i):'').join('')||'<div class="box">Bu kategoriyada taom yoʻq. «+ Yangi taom» tugmasi bilan qoʻshing.</div>')+`<div class="bar"><button class="btn" data-a="madd">+ Yangi taom</button><span class="dirty ${DIRTY?'on':''}" id="dirty">${DIRTY?'Saqlanmagan oʻzgarishlar bor':'Hammasi saqlangan'}</span><button class="btn p" data-a="msave">Saqlash</button></div>`;
+const ICN={'':'Belgisiz',star:'Reyting (yulduz)',bike:'Yetkazish',cash:'Pul',clock:'Soat'},LNK={'#menu':'Menyu','#gallery':'Galereya','#about':'Biz haqimizda','#contact':'Aloqa'};
 const slV=()=>D.slides.map((s,i)=>`<div class="box"><div class="r" style="margin-bottom:10px"><b>Slayd ${i+1}</b><span><label><input type="checkbox" data-p="slides.${i}.a" ${s.a?'checked':''}> koʻrsatish</label> <button class="btn" data-a="sup" data-i="${i}" ${i?'':'disabled'}>↑</button> <button class="btn" data-a="sdn" data-i="${i}" ${i<D.slides.length-1?'':'disabled'}>↓</button> <button class="btn d" data-a="sdel" data-i="${i}">Oʻchirish</button></span></div>
 <div class="imgs"><div><label class="l">1-rasm (katta)</label>${phs(s.i1,'slides.'+i+'.i1','big')}</div><div><label class="l">2-rasm (kichik)</label>${phs(s.i2,'slides.'+i+'.i2','big')}</div></div>
 <div class="f"><div class="f2"><div><label class="l">Kichik sarlavha</label><input data-p="slides.${i}.k" value="${esc(s.k)}"></div><div><label class="l">Asosiy sarlavha (*soʻz* = oltin rangda)</label><input data-p="slides.${i}.h" value="${esc(s.h)}"></div></div>
@@ -144,10 +145,9 @@ const setV=()=>{const g=D.tg,s=D.settings||{},ok=(c,t)=>`<span class="bd ${c?'s3
 <div><label class="l">Reyting yozuvi (ixtiyoriy)</label><input data-p="settings.rating" value="${esc(s.rating)}" placeholder="4.2 · Yandex Xaritalar"></div>
 <div class="f2"><div><label class="l">Telegram havolasi (ixtiyoriy)</label><input data-p="settings.telegram" value="${esc(s.telegram)}" placeholder="https://t.me/..."></div><div><label class="l">Instagram havolasi (ixtiyoriy)</label><input data-p="settings.instagram" value="${esc(s.instagram)}" placeholder="https://instagram.com/..."></div></div></div>
 <div style="margin-top:12px"><button class="btn p" data-a="setsave">Saqlash</button></div></div>
-<div class="box"><b>Yetkazish narxi</b><div class="hint" style="margin:3px 0 12px">Narx mijoz xaritada belgilagan joygacha masofaga qarab avtomatik hisoblanadi va savatda koʻrinadi. Boshlangan har bir kilometr hisoblanadi.</div><div class="f">
-<div class="f2"><div><label class="l">Birinchi 1 km uchun (soʻm)</label><input type="number" inputmode="numeric" data-p="settings.delFirst" value="${s.delFirst}"></div><div><label class="l">Keyingi har bir km uchun (soʻm)</label><input type="number" inputmode="numeric" data-p="settings.delKm" value="${s.delKm}"></div></div>
-<div class="f2"><div><label class="l">Eng uzoq masofa, km (0 = cheklovsiz)</label><input type="number" inputmode="decimal" data-p="settings.delMax" value="${s.delMax}"></div><div><label class="l">Yoʻl koeffitsienti</label><input type="number" step="0.1" inputmode="decimal" data-p="settings.roadK" value="${s.roadK}"></div></div></div>
-<div class="hint" style="margin-top:10px">Misol: 1 km gacha <b>${fmt(s.delFirst)}</b>, 2 km gacha <b>${fmt(s.delFirst+s.delKm)}</b>, 3 km gacha <b>${fmt(s.delFirst+2*s.delKm)}</b>, 5 km gacha <b>${fmt(s.delFirst+4*s.delKm)}</b>.<br>Yoʻl koeffitsienti: xaritadagi toʻgʻri masofa shu songa koʻpaytiriladi (yoʻllar egri-bugri boʻlgani uchun). 1.3 tavsiya etiladi, 1 qilsangiz toʻgʻri chiziq boʻyicha hisoblanadi. Oʻzgartirgach «Saqlash» ni bosing.</div>
+<div class="box"><b>Yetkazish narxi</b><div class="hint" style="margin:3px 0 12px">Bu narxlar saytdagi savatda mijozga koʻrsatiladi. Sayt yetkazish narxini oʻzi hisoblamaydi.</div><div class="f">
+<div class="f2"><div><label class="l">Birinchi 1 km uchun (soʻm)</label><input type="number" inputmode="numeric" data-p="settings.delFirst" value="${s.delFirst}"></div><div><label class="l">Keyingi har bir km uchun (soʻm)</label><input type="number" inputmode="numeric" data-p="settings.delKm" value="${s.delKm}"></div></div></div>
+<div class="hint" style="margin-top:10px">Mijoz savatda shunday koʻradi: <b>1 km gacha ${fmt(s.delFirst)}, keyingi har km ${fmt(s.delKm)}</b>.</div>
 <div style="margin-top:12px"><button class="btn p" data-a="setsave">Saqlash</button></div></div>
 <div class="box"><b>Google xarita</b> ${ok(D.gmap,D.gmap?'Ulangan':'Ulanmagan')}<div class="hint" style="margin:6px 0 10px">Mijoz xaritadan joyini belgilaganda koʻcha va uy raqami aniq chiqishi uchun Google xarita kaliti kerak.</div>
 <label class="l">Google xarita kaliti</label><input data-p="settings.googleKey" value="${esc(s.googleKey)}" placeholder="AIza..." autocomplete="off">
@@ -156,7 +156,7 @@ const setV=()=>{const g=D.tg,s=D.settings||{},ok=(c,t)=>`<span class="bd ${c?'s3
 <div class="box"><b>Telegram bot</b><div class="hint" style="margin:6px 0 10px">Buyurtmalar guruhlarga tushishi va mijozlar Telegram ichida buyurtma berishi uchun.</div>
 <div class="r" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">${ok(g.on,g.on?'Bot ulangan'+(g.bot?' (@'+esc(g.bot)+')':''):'Bot ulanmagan')}${ok(g.courier,g.courier?'Kuryerlar guruhi ulangan':'Kuryerlar guruhi ulanmagan')}${ok(g.app,g.app?'Mini App tugmasi ulangan':'Mini App tugmasi ulanmagan')}</div>
 <div style="margin-top:12px"><button class="btn p" data-a="tgtest">Test xabar yuborish</button></div><div id="tgr" style="margin-top:10px"></div>
-<div class="hint">Test xabar guruhlarga keladi. Guruhda <b>/id</b> deb yozsangiz, bot guruh raqamini aytadi.${g.on&&!g.app?' Mini App ishlashi uchun sayt manzili https boʻlishi kerak.':''}</div></div>`};
+<div class="hint">Test xabar guruhlarga keladi.${g.on&&!g.app?' Mini App ishlashi uchun sayt manzili https boʻlishi kerak.':''}</div></div>`};
 /* ---- statistika ---- */
 const tk=t=>new Date(t+5*36e5).toISOString().slice(0,10),addD=(k,n)=>new Date(Date.parse(k)+n*864e5).toISOString().slice(0,10),dm=k=>k.slice(8)+'.'+k.slice(5,7)+'.'+k.slice(0,4);
 const PRE=[['0','Bugun'],['1','Kecha'],['7','7 kun'],['30','30 kun'],['90','90 kun'],['365','1 yil'],['c','Boshqa davr']];
@@ -200,10 +200,10 @@ const stV=()=>{
   const kp=(l,v,c)=>`<div class="box"><small>${l}</small><b>${v}</b>${c||''}</div>`;
   const mxq=Math.max(1,...d.top.map(x=>x.q));
   return ctl+`<div class="hint">${dm(d.from)}${d.from===d.to?'':' – '+dm(d.to)} · ${d.span} kun · oldingi davr: ${dm(pf)}${pf===pt2?'':' – '+dm(pt2)} bilan solishtirildi${SS.busy?' · yangilanmoqda…':''}</div>
-<div class="kp">${kp('Tushum (taomlar)',fmt(k.s),dlt(k.s,p.s))}${kp('Yetkazilgan buyurtmalar',k.n,dlt(k.n,p.n))}${kp('Oʻrtacha chek',fmt(k.avg),dlt(k.avg,p.avg))}${kp('Yetkazish haqi',fmt(k.f||0),dlt(k.f||0,p.f||0))}${kp('Bekor qilingan',k.c,'')}</div>
+<div class="kp">${kp('Tushum',fmt(k.s),dlt(k.s,p.s))}${kp('Yetkazilgan buyurtmalar',k.n,dlt(k.n,p.n))}${kp('Oʻrtacha chek',fmt(k.avg),dlt(k.avg,p.avg))}${(k.f||0)>0?kp('Yetkazish haqi',fmt(k.f),dlt(k.f,p.f||0)):''}${kp('Bekor qilingan',k.c,'')}</div>
 <div class="box ch"><b>Tushum dinamikasi</b><div style="margin-top:8px">${chart(d.days)}</div></div>
 <div class="box"><b>Eng koʻp sotilgan taomlar</b>${d.top.map(x=>`<div class="tp"><span>${esc(x.n)}</span><div><i style="width:${(x.q/mxq*100).toFixed(0)}%"></i></div><b>${x.q} ta</b><em>${fmt(x.s)}</em></div>`).join('')||'<div class="hint">Maʼlumot yoʻq.</div>'}</div>
-<div class="hint">Tushum faqat “Yetkazildi” holatiga oʻtgan buyurtmalarning taom narxidan hisoblanadi, yetkazish haqi alohida koʻrsatiladi. Arxivdan oʻchirilgan buyurtmalar ham statistikada saqlanadi.</div>`;
+<div class="hint">Tushum faqat “Yetkazildi” holatiga oʻtgan buyurtmalardan hisoblanadi. Arxivdan oʻchirilgan buyurtmalar ham statistikada saqlanadi.</div>`;
 };
 /* ---- mijozlar (Mini App foydalanuvchilari) ---- */
 let US={list:null,total:0,q:''};
@@ -213,13 +213,13 @@ const ulist=()=>{const q=US.q.toLowerCase(),l=(US.list||[]).filter(u=>!q||[u.fn,
   return l.map(u=>`<div class="box"><div class="r"><b>${esc([u.fn,u.ln].filter(Boolean).join(' ')||'Nomaʼlum')}</b><span class="bd">${u.n} ta buyurtma · ${fmt(u.s)}</span></div><div class="hint" style="margin:4px 0 0">${u.un?`<a href="https://t.me/${esc(u.un)}" target="_blank" rel="noopener">@${esc(u.un)}</a> · `:''}ID ${u.id}${u.ph?` · ${esc(u.ph)}`:''}<br>Oxirgi kirish: ${dtT(u.t1)} · Birinchi kirish: ${dtT(u.t0)}</div></div>`).join('')||'<div class="box">Hech kim topilmadi.</div>'};
 const uV=()=>!US.list?'<div class="box">Yuklanmoqda…</div>':`<div class="r" style="margin-bottom:10px"><div class="hint" style="margin:0">Mini App ga kirgan mijozlar: <b>${US.total}</b> ta${US.total>US.list.length?` (oxirgi ${US.list.length} tasi koʻrsatilgan)`:''}</div></div><input id="uq" placeholder="Ism, @username yoki ID boʻyicha qidirish" value="${esc(US.q)}" style="margin-bottom:12px"><div id="ul">${ulist()}</div>`;
 /* ---- xabar yuborish (botdagi mijozlarga) ---- */
-let BC={fid:'',name:'',kind:'',size:0,prev:'',text:'',menu:true,info:null,busy:false};
+let BC={mine:0,fid:'',name:'',kind:'',size:0,prev:'',text:'',menu:true,info:null,busy:false};
 const KN={photo:'Rasm',video:'Video',animation:'GIF',doc:'Fayl',text:'Matn'};
 const dataToBlob=d=>{const[h,b]=d.split(','),bin=atob(b),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new Blob([u],{type:'image/jpeg'})};
 const bcStatus=()=>{
   const i=BC.info;if(!i)return '';const j=i.job;let h='';
   if(j&&j.state==='running'){const p=j.total?Math.round(j.done/j.total*100):0;h+=`<div class="box"><b>Yuborilmoqda… ${p}%</b><div class="pg"><i style="width:${p}%"></i></div><div class="hint" style="margin:0 0 10px">${j.done} / ${j.total} · yetkazildi: ${j.ok} · yetib bormadi: ${j.bl+j.fail}</div><button class="btn d" data-a="bccancel">Toʻxtatish</button></div>`}
-  if((i.hist||[]).length)h+=`<div class="box"><b>Oxirgi xabarlar</b>${i.hist.slice(0,8).map(x=>`<div class="hi"><div><b>${KN[x.kind]||'Matn'}</b> · ${esc(x.text||'(matnsiz)')}<small>${dtT(x.t)}${x.state==='cancelled'?' · toʻxtatilgan':''}</small></div><span class="bd s3">${x.ok}/${x.total}</span>${x.bl+x.fail?`<span class="bd bad">${x.bl+x.fail} ta yetmadi</span>`:''}</div>`).join('')}</div>`;
+  else if(j&&BC.mine===j.id)h+=`<div class="box"><b>${j.state==='cancelled'?'Yuborish toʻxtatildi':'Xabar yuborildi'}</b><div class="hint" style="margin:6px 0 10px">Yetkazildi: <b>${j.ok}</b> / ${j.total}${j.bl+j.fail?` · yetib bormadi: ${j.bl+j.fail}`:''}</div><button class="btn" data-a="bcdone">Yopish</button></div>`;
   return h;
 };
 const bcV=()=>{const i=BC.info||{audience:0,total:0,bot:true};return `${H('Botga <b>/start</b> bosgan va Mini App ga kirgan mijozlarga xabar yuborasiz. Matn, rasm yoki video yuborish mumkin.')}${i.bot===false?H('<span style="color:var(--r)">Telegram bot ulanmagan. Avval Sozlamalar da botni ulang.</span>'):''}
@@ -252,7 +252,7 @@ async function bcSend(test){
   if(!test&&!confirm(`${BC.info?BC.info.audience:0} ta mijozga xabar yuborilsinmi? Yuborilgan xabarni qaytarib boʻlmaydi.`))return;
   const r=await api('/api/admin/bc/send',{text,fid:BC.fid,menu:BC.menu,test});
   if(test){if(r.ok)toast('Sinov xabari admin guruhiga yuborildi');else throw new Error(r.error||'Yuborib boʻlmadi');return}
-  toast('Yuborish boshlandi');BC.fid='';BC.name='';BC.prev='';BC.text='';view();bcLoad();
+  BC.mine=r.job.id;toast('Yuborish boshlandi');BC.fid='';BC.name='';BC.prev='';BC.text='';view();bcLoad();
 }
 const ordTab=(nw,pr,ar,td)=>`<div class="st"><div class="box"><b>${nw}</b>Yangi</div><div class="box"><b>${pr}</b>Jarayonda</div><div class="box"><b>${fmt(td.s)}</b>Bugungi tushum · ${td.n} ta yetkazildi</div></div>${chips([['act','Faol buyurtmalar'+(nw+pr?` (${nw+pr})`:'')],['done','Tugagan'+(ar?` (${ar})`:'')]],SUB.orders,'osub')}${SUB.orders==='act'?(D.tg.on?'':H('Telegram ulanmagan: buyurtma holatini shu yerdan oʻzgartirasiz.'))+ordV(false):H(`Yetkazilgan va bekor qilingan buyurtmalar ${D.keep===0?'darhol':D.keep+' kundan keyin'} roʻyxatdan oʻchadi. Statistika esa saqlanib qoladi.`)+ordV(true)}`;
 const siteV=()=>chips([['slides','Bosh sahifa slaydlari'],['gallery','Galereya'],['about','Biz haqimizda']],SUB.site,'ssub')+(SUB.site==='slides'?H('Saytning eng tepasidagi katta rasmli slaydlar. Soʻzni <b>*yulduzcha*</b> ichiga olsangiz, u oltin rangda chiqadi.')+slV():SUB.site==='gallery'?galV():abV());
@@ -287,6 +287,7 @@ document.addEventListener('click',e=>{
     else if(a==='bcx'){BC.fid='';BC.name='';BC.prev='';view()}
     else if(a==='bctest')await bcSend(true);
     else if(a==='bcgo')await bcSend(false);
+    else if(a==='bcdone'){BC.mine=0;const s=$('bcst');if(s)s.innerHTML=bcStatus()}
     else if(a==='bccancel'){await api('/api/admin/bc/cancel',{});toast('Toʻxtatilmoqda');bcLoad()}
     else if(a==='osub'){SUB.orders=t.dataset.i;view()}
     else if(a==='ssub'){SUB.site=t.dataset.i;view()}
