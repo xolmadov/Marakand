@@ -316,7 +316,7 @@ document.addEventListener('click',e=>{
     else if(a==='ytest'){
       $('ytr').textContent='Tekshirilmoqda…';const r=await api('/api/admin/ytest',{});
       const f=(n,x)=>`<div>${n}: <b style="color:${x.ok?'#6fd68b':'#ff8a8a'}">${x.ok?'ishlayapti':'xato'}</b> (${x.status||'ulanmadi'})${x.msg?' — '+esc(x.msg):''}</div>`;
-      $('ytr').innerHTML=f('Geokoder kaliti',r.geo)+f('Xarita kaliti',r.js)+`<div>Manzil sinovi (kafe nuqtasi): <b>${esc(r.rev||'—')}</b>${r.revsrc?' · manba: '+esc(r.revsrc):''}</div>`+(r.yerr?`<div>Oxirgi Yandex geokoder xatosi: <b>${esc(r.yerr)}</b></div>`:'')+(r.map?`<div>Brauzerdagi oxirgi xarita xatosi: <b>${esc(r.map.e)}</b>${r.map.csp?' · CSP: '+esc(r.map.csp):''}</div>`:'<div>Brauzerda xarita xatosi qayd etilmagan.</div>');
+      $('ytr').innerHTML=f('Geokoder kaliti',r.geo)+f('Xarita kaliti',r.js)+`<div>Manzil sinovi (kafe nuqtasi): <b>${esc(r.rev||'—')}</b>${r.revsrc?' · manba: '+esc(r.revsrc):''}</div>`+(r.revlog&&r.revlog.length?`<div>Tafsilot: ${r.revlog.map(esc).join('<br>')}</div>`:'')+`<div>Server versiyasi: ${esc(r.build||'?')}${r.info?' · '+esc(r.info):''}</div>`+(r.yerr?`<div>Oxirgi Yandex geokoder xatosi: <b>${esc(r.yerr)}</b></div>`:'')+(r.map?`<div>Brauzerdagi oxirgi xarita xatosi: <b>${esc(r.map.e)}</b>${r.map.csp?' · CSP: '+esc(r.map.csp):''}</div>`:'<div>Brauzerda xarita xatosi qayd etilmagan.</div>');
     }
     else if(a==='qtest'){
       const q=$('qa').value.trim();if(!q)throw new Error('Sinash uchun manzilni yozing');$('qtr').textContent='Hisoblanmoqda…';
