@@ -47,12 +47,24 @@ const ptOf=b=>{const la=b.lat==null||b.lat===''?NaN:+b.lat,lo=b.lng==null||b.lng
 const yKey=c=>c.yandexGeoKey||c.yandexKey||cl(E.YANDEX_GEO_KEY,80).replace(/[^\w-]/g,'')||cl(E.YANDEX_MAPS_KEY,80).replace(/[^\w-]/g,'');
 async function getJson(url,ms=6000){const r=await fetch(url,{signal:AbortSignal.timeout(ms),headers:{'user-agent':UA,'accept-language':'uz,ru'}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
 const GC=new Map(),RC=new Map(),memo=(m,k,v)=>{m.set(k,v);if(m.size>500)m.delete(m.keys().next().value);return v};
+const YST={e:'',t:0};let MAPERR=null; // YST: oxirgi Yandex geokoder xatosi; MAPERR: brauzerdagi oxirgi xarita xatosi
+// Yandex geokoder: avval oʻzbekcha (uz_UZ), boʻlmasa ruscha (ru_RU) javob
+async function ygeoReq(key,extra){
+  let last=null;
+  for(const lang of['uz_UZ','ru_RU']){
+    try{
+      const u=new URL(YGEO);u.search=new URLSearchParams({apikey:key,format:'json',lang,...extra});
+      const fm=((((await getJson(u)).response||{}).GeoObjectCollection||{}).featureMember)||[];
+      last=null;YST.e='';
+      if(fm.length)return fm;
+    }catch(e){last=e}
+  }
+  if(last){YST.e=last.message;YST.t=Date.now();throw last}
+  return[];
+}
+const gObj=o=>{const m=(o.metaDataProperty||{}).GeocoderMetaData||{},p=String((o.Point||{}).pos||'').split(' ').map(Number);if(p.length!==2||!p.every(Number.isFinite))return null;return{lat:p[1],lng:p[0],text:cl(m.text,200),apx:!['exact','number','near'].includes(m.precision)}};
 async function geoYandex(q,key,c){
-  const u=new URL(YGEO);u.search=new URLSearchParams({apikey:key,geocode:q,format:'json',results:'1',lang:'ru_RU',ll:c.lng+','+c.lat,spn:'0.3,0.3',rspn:'1'});
-  const j=await getJson(u),f=((((j||{}).response||{}).GeoObjectCollection||{}).featureMember||[])[0];if(!f)return null;
-  const o=f.GeoObject,m=(o.metaDataProperty||{}).GeocoderMetaData||{},p=String((o.Point||{}).pos||'').split(' ').map(Number);
-  if(p.length!==2||!p.every(Number.isFinite))return null;
-  return{lat:p[1],lng:p[0],text:cl(m.text,200),apx:!['exact','number','near'].includes(m.precision)};
+  const f=(await ygeoReq(key,{geocode:q,results:'1',ll:c.lng+','+c.lat,spn:'0.3,0.3',rspn:'1'}))[0];return f?gObj(f.GeoObject):null;
 }
 async function geoOsm(q,c){
   const d=.15,u=new URL(NOM+'/search');u.search=new URLSearchParams({format:'jsonv2',limit:'1',countrycodes:'uz',q,viewbox:[c.lng-d,c.lat+d,c.lng+d,c.lat-d].join(','),bounded:'1','accept-language':'uz,ru'});
@@ -66,18 +78,26 @@ async function geocode(addr,c){
   if(!g){try{g=await geoOsm(addr,c)}catch(e){console.error('OSM geokoder xatosi:',e.message)}}
   return g?memo(GC,k,g):null;
 }
-const shortRu=s=>String(s||'').replace(/^улица\s+(.+)$/i,'$1 koʻchasi');
+// Koordinata boʻyicha toʻliq manzil: Oʻzbekiston, viloyat, tuman, aholi punkti, koʻcha, uy
 async function revgeo(la,lo,c){
   const k=la.toFixed(5)+','+lo.toFixed(5);if(RC.has(k))return RC.get(k);
   const key=yKey(c);let a='';
   if(key){try{
-    const u=new URL(YGEO);u.search=new URLSearchParams({apikey:key,geocode:lo+','+la,format:'json',results:'1',kind:'house',lang:'ru_RU'});
-    const fm=((((await getJson(u)).response||{}).GeoObjectCollection||{}).featureMember||[])[0],o=fm&&fm.GeoObject;
-    if(o){const comp=((((o.metaDataProperty||{}).GeocoderMetaData||{}).Address||{}).Components)||[],g=kd=>{const x=comp.filter(y=>y.kind===kd).pop();return x?x.name:''};
-      a=[[shortRu(g('street')),g('house')].filter(Boolean).join(', '),g('district'),g('locality')].filter(Boolean).filter((x,i,r)=>r.indexOf(x)===i).join(', ')||cl(o.name,120)}
+    let fm=await ygeoReq(key,{geocode:lo+','+la,results:'1',kind:'house'});
+    if(!fm.length)fm=await ygeoReq(key,{geocode:lo+','+la,results:'1'});
+    const o=fm[0]&&fm[0].GeoObject;
+    if(o)a=cl(((o.metaDataProperty||{}).GeocoderMetaData||{}).text||[o.description,o.name].filter(Boolean).join(', '),200);
   }catch(e){console.error('Yandex teskari geokoder xatosi:',e.message)}}
-  if(!a){try{const d=await getJson(NOM+'/reverse?format=jsonv2&addressdetails=1&accept-language=uz,ru&zoom=17&lat='+la+'&lon='+lo),x=d.address||{};a=[x.road,x.house_number,x.neighbourhood||x.suburb,x.village||x.town||x.city].filter(Boolean).join(', ')||String(d.display_name||'').split(',').slice(0,3).join(',').trim()}catch(e){}}
+  if(!a){try{const d=await getJson(NOM+'/reverse?format=jsonv2&addressdetails=1&accept-language=uz,ru&zoom=18&lat='+la+'&lon='+lo),x=d.address||{};a=[x.country,x.state,x.county||x.city_district||x.district,x.village||x.town||x.city||x.hamlet,x.road,x.house_number].filter(Boolean).join(', ')||String(d.display_name||'').replace(/,\s*\d{5,6}\b/,'')}catch(e){}}
   a=cl(a,200);return a?memo(RC,k,a):'';
+}
+// Manzil qidirish (takliflar)
+async function suggest(q,c){
+  q=cl(q,120);if(q.length<2)return[];
+  const key=yKey(c);let out=[];
+  if(key){try{out=(await ygeoReq(key,{geocode:q,results:'6',ll:c.lng+','+c.lat,spn:'0.5,0.5',rspn:'0'})).map(f=>gObj(f.GeoObject)).filter(Boolean)}catch(e){console.error('Yandex qidiruv xatosi:',e.message)}}
+  if(!out.length){try{const d=.4,u=new URL(NOM+'/search');u.search=new URLSearchParams({format:'jsonv2',limit:'6',countrycodes:'uz',q,viewbox:[c.lng-d,c.lat+d,c.lng+d,c.lat-d].join(','),bounded:'0','accept-language':'uz,ru'});out=(await getJson(u)).map(r=>({lat:+r.lat,lng:+r.lon,text:cl(r.display_name,200)}))}catch(e){}}
+  return out.slice(0,6).map(r=>({t:r.text,lat:+r.lat.toFixed(6),lng:+r.lng.toFixed(6)}));
 }
 // Yoʻl masofasi (OSRM). Xizmat javob bermasa: toʻgʻri chiziq × 1.3 (taxminiy, est=1)
 async function roadKm(la,lo,c){
@@ -466,8 +486,10 @@ const server=http.createServer(async(req,res)=>{try{
   if(!/^application\/json/i.test(req.headers['content-type']||''))return send(res,415,{error:'Notoʻgʻri soʻrov turi'});
   const pn=Date.now(),pl=(postT.get(ip)||[]).filter(t=>pn-t<6e4);if(pl.length>=120)return send(res,429,{error:'Juda koʻp soʻrov'});pl.push(pn);postT.set(ip,pl);
   let b;try{b=await body(req,u==='/api/admin/upload'&&authed(req)?5e6:2e5)}catch(e){return send(res,e.message==='big'?413:400,{error:e.message==='big'?'Soʻrov juda katta (rasm hajmi katta)':'Xato soʻrov'})}
-  if(u==='/api/quote'||u==='/api/rev'){
-    const qn=Date.now(),ql=(quoT.get(ip)||[]).filter(t=>qn-t<6e4);if(ql.length>=40)return send(res,429,{error:'Juda koʻp soʻrov. Birozdan keyin urinib koʻring'});ql.push(qn);quoT.set(ip,ql);
+  if(u==='/api/quote'||u==='/api/rev'||u==='/api/suggest'||u==='/api/maplog'){
+    const sg=u==='/api/suggest',qk=sg?'s'+ip:ip,qn=Date.now(),ql=(quoT.get(qk)||[]).filter(t=>qn-t<6e4);if(ql.length>=(sg?90:40))return send(res,429,{error:'Juda koʻp soʻrov. Birozdan keyin urinib koʻring'});ql.push(qn);quoT.set(qk,ql);
+    if(u==='/api/maplog'){MAPERR={t:Date.now(),e:cl(b.e,300),csp:cl(b.csp,400)};return send(res,200,{ok:1})}
+    if(sg)return send(res,200,{list:await suggest(b.q,cfgFull())});
     if(u==='/api/rev'){const p=ptOf(b);if(!p)return send(res,400,{error:'Koordinata notoʻgʻri'});return send(res,200,{addr:await revgeo(p.lat,p.lng,cfgFull())})}
     try{return send(res,200,await quote(b))}catch(e){return send(res,400,{error:e.message})}
   }
@@ -524,6 +546,12 @@ const server=http.createServer(async(req,res)=>{try{
     if(!(buf[0]===0xff&&buf[1]===0xd8&&buf[2]===0xff))return send(res,400,{error:'Bu rasm fayli emas'});
     const f=crypto.randomBytes(8).toString('hex')+'.jpg';
     try{if(SB)return send(res,200,{url:await sbUpload(f,buf)});fs.writeFileSync(path.join(UP,f),buf);return send(res,200,{url:'/img/'+f})}catch(e){return fail(res,e)}
+  }
+  if(u==='/api/admin/ytest'){
+    const c=cfgFull(),gk=yKey(c),jk=c.yandexKey||cl(E.YANDEX_MAPS_KEY,80).replace(/[^\w-]/g,'');
+    const chk=async url=>{try{const r=await fetch(url,{signal:AbortSignal.timeout(7000),headers:{'user-agent':UA}}),t=await r.text();return{ok:r.ok,status:r.status,msg:r.ok?'':t.slice(0,160)}}catch(e){return{ok:false,status:0,msg:e.message}}};
+    const no={ok:false,status:0,msg:'Kalit kiritilmagan'};
+    return send(res,200,{geo:gk?await chk(YGEO+'?'+new URLSearchParams({apikey:gk,geocode:'Poytug',format:'json',results:'1'})):no,js:jk?await chk('https://api-maps.yandex.ru/v3/?'+new URLSearchParams({apikey:jk,lang:'ru_RU'})):no,map:MAPERR});
   }
   if(u==='/api/admin/telegram-test'){
     if(!tgOn())return send(res,200,{ok:false,error:'BOT_TOKEN yoki CHAT_ID berilmagan. .env faylini tekshiring.'});
