@@ -11,7 +11,7 @@ const KEEP=E.ORDER_KEEP_DAYS!==undefined&&E.ORDER_KEEP_DAYS!==''?Math.max(0,+E.O
 const PURL=(E.PUBLIC_URL||E.RENDER_EXTERNAL_URL||'').trim().replace(/\/+$/,''),WA=/^https:\/\//.test(PURL)?PURL:'';
 const CH_A=String(E.CHAT_ID||''),CH_C=E.COURIER_CHAT_ID&&String(E.COURIER_CHAT_ID)!==CH_A?String(E.COURIER_CHAT_ID):'';
 const TZ=5*36e5,dkey=t=>new Date(t+TZ).toISOString().slice(0,10); // Toshkent kuni (UTC+5)
-const CSP=(n,fa)=>["default-src 'self'","script-src 'self' 'nonce-"+n+"' https://cdnjs.cloudflare.com https://maps.googleapis.com https://maps.gstatic.com https://telegram.org","style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://maps.googleapis.com","font-src 'self' https://fonts.gstatic.com data:","img-src 'self' data: blob: https://commons.wikimedia.org https://upload.wikimedia.org https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://api.maptiler.com https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.googleusercontent.com"+(SB?' https://*.supabase.co':''),"connect-src 'self' https://nominatim.openstreetmap.org https://*.googleapis.com","worker-src blob:","frame-src 'none'","object-src 'none'","base-uri 'self'","form-action 'self'","frame-ancestors "+(fa?"'self' https://web.telegram.org https://*.telegram.org https://telegram.org":"'none'")].join('; ');
+const CSP=(n,fa)=>["default-src 'self'","script-src 'self' 'nonce-"+n+"' https://cdnjs.cloudflare.com https://api-maps.yandex.ru https://yastatic.net https://telegram.org blob:","style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://yastatic.net","font-src 'self' https://fonts.gstatic.com https://yastatic.net data:","img-src 'self' data: blob: https://commons.wikimedia.org https://upload.wikimedia.org https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://api.maptiler.com https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.googleusercontent.com https://*.maps.yandex.net https://*.yandex.net https://*.yandex.ru https://yastatic.net"+(SB?' https://*.supabase.co':''),"connect-src 'self' https://nominatim.openstreetmap.org https://api-maps.yandex.ru https://*.maps.yandex.net https://*.yandex.net https://*.yandex.ru https://yandex.ru","worker-src blob:","frame-src 'none'","object-src 'none'","base-uri 'self'","form-action 'self'","frame-ancestors "+(fa?"'self' https://web.telegram.org https://*.telegram.org https://telegram.org":"'none'")].join('; ');
 const cl=(s,n)=>String(s??'').trim().slice(0,n),h=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const PLOV='https://commons.wikimedia.org/wiki/Special:FilePath/Samarkan_Pilaf.jpg?width=700';
 const seedMenu=[
@@ -28,14 +28,80 @@ const seedSlides=[
 {id:4,a:1,k:'Kofe olib ketish',h:'Kafemizga *xush kelibsiz*',p:'Qulay muhit, serviz dasturxon va mehmondoʻst xizmat. Kofeni oʻzingiz bilan olib ketishingiz ham mumkin.',b:'Manzilimiz',l:'#contact',i1:'/photos/p1.jpg',i2:'/photos/p3.jpg',ic:'clock',bt:'07:00 – 23:00',bs:'Ish vaqti'}];
 const seedGal=[{id:1,img:'/photos/p1.jpg',t:''},{id:2,img:'/photos/p3.jpg',t:''},{id:3,img:'/photos/p2.jpg',t:''}];
 // ---- kafe maʼlumotlari (admin paneldan oʻzgartiriladi) va menyu kategoriyalari ----
-const SET_DEF={phone:'1414',address:'Poytugʻ, Alisher Navoiy MFY, Alisher Navoiy 2-berk koʻchasi, 3',hours:'07:00 – 23:00',rating:'4.2 · Yandex Xaritalar',telegram:'',instagram:'https://www.instagram.com/marakand_poytug',googleKey:'',lat:40.892109,lng:72.252442,delFirst:5000,delKm:2500};
+const SET_DEF={phone:'1414',address:'Poytugʻ, Alisher Navoiy MFY, Alisher Navoiy 2-berk koʻchasi, 3',hours:'07:00 – 23:00',rating:'4.2 · Yandex Xaritalar',telegram:'',instagram:'https://www.instagram.com/marakand_poytug',lat:40.892109,lng:72.252442,delFirst:5000,delKm:2500,delOn:1,minOn:0,minSum:0,yandexKey:'',yandexGeoKey:''};
 const urlOk=s=>/^https?:\/\/[^\s<>"']{3,200}$/i.test(String(s||'').trim())?String(s).trim():'';
 const numIn=(v,min,max,d)=>{const x=v===''||v==null?NaN:+v;return Number.isFinite(x)&&x>=min&&x<=max?x:d};
-const cleanSettings=s=>{s=s||{};return{phone:cl(s.phone,30)||SET_DEF.phone,address:cl(s.address,200)||SET_DEF.address,hours:cl(s.hours,40)||SET_DEF.hours,rating:cl(s.rating,60),telegram:urlOk(s.telegram),instagram:urlOk(s.instagram),googleKey:cl(s.googleKey,80).replace(/[^\w-]/g,''),lat:numIn(s.lat,-90,90,SET_DEF.lat),lng:numIn(s.lng,-180,180,SET_DEF.lng),delFirst:Math.round(numIn(s.delFirst,0,1e6,SET_DEF.delFirst)),delKm:Math.round(numIn(s.delKm,0,1e6,SET_DEF.delKm))}};
+const cleanSettings=s=>{s=s||{};return{phone:cl(s.phone,30)||SET_DEF.phone,address:cl(s.address,200)||SET_DEF.address,hours:cl(s.hours,40)||SET_DEF.hours,rating:cl(s.rating,60),telegram:urlOk(s.telegram),instagram:urlOk(s.instagram),yandexKey:cl(s.yandexKey,80).replace(/[^\w-]/g,''),yandexGeoKey:cl(s.yandexGeoKey,80).replace(/[^\w-]/g,''),lat:numIn(s.lat,-90,90,SET_DEF.lat),lng:numIn(s.lng,-180,180,SET_DEF.lng),delFirst:Math.round(numIn(s.delFirst,0,1e6,SET_DEF.delFirst)),delKm:Math.round(numIn(s.delKm,0,1e6,SET_DEF.delKm)),delOn:s.delOn===undefined?SET_DEF.delOn:(s.delOn&&s.delOn!=='0'?1:0),minOn:s.minOn&&s.minOn!=='0'?1:0,minSum:Math.round(numIn(s.minSum,0,1e9,0))}};
 const cleanCats=a=>[...new Set((Array.isArray(a)?a:[]).map(x=>cl(x,30)).filter(Boolean))].slice(0,30);
 let db={menu:seedMenu,cats:cleanCats(seedMenu.map(m=>m.c)),settings:{},orders:[],slides:seedSlides,gallery:seedGal,about:{img:'/photos/p1.jpg'},users:{},stats:{},lastId:1000};
 const cfgFull=()=>({...SET_DEF,...db.settings});
-const cfgPub=()=>{const c=cfgFull();return{phone:c.phone,address:c.address,hours:c.hours,rating:c.rating,telegram:c.telegram,instagram:c.instagram,googleKey:c.googleKey||cl(E.GOOGLE_MAPS_KEY,80).replace(/[^\w-]/g,''),lat:c.lat,lng:c.lng,delFirst:c.delFirst,delKm:c.delKm}};
+const cfgPub=()=>{const c=cfgFull();return{phone:c.phone,address:c.address,hours:c.hours,rating:c.rating,telegram:c.telegram,instagram:c.instagram,yandexKey:c.yandexKey||cl(E.YANDEX_MAPS_KEY,80).replace(/[^\w-]/g,''),lat:c.lat,lng:c.lng,delFirst:c.delFirst,delKm:c.delKm,delOn:c.delOn?1:0,minOn:c.minOn?1:0,minSum:c.minSum||0}};
+// ---- yetkazish: masofa, narx va manzilni aniqlash (Yandex geokoder; kalit boʻlmasa OpenStreetMap) ----
+const UA='MarakandCafe/1.0',OSRM=(E.OSRM_URL||'https://router.project-osrm.org').replace(/\/+$/,''),YGEO=E.YANDEX_GEO_URL||'https://geocode-maps.yandex.ru/1.x/',NOM=(E.NOMINATIM_URL||'https://nominatim.openstreetmap.org').replace(/\/+$/,''),MAXKM=+E.DELIVERY_MAX_KM||60;
+const rad=x=>x*Math.PI/180,hav=(a,b,c,d)=>{const x=Math.sin(rad(c-a)/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(rad(d-b)/2)**2;return 12742*Math.asin(Math.sqrt(x))};
+const fmtN=n=>Number(n).toLocaleString('ru-RU');
+// 1 km gacha delFirst, undan keyin har bir boshlangan km uchun delKm
+const feeOf=(km,c)=>c.delOn?c.delFirst+Math.ceil(Math.max(0,km-1))*c.delKm:0;
+const minErr=(sub,c)=>c.minOn&&c.minSum>0&&sub<c.minSum?`Minimal buyurtma summasi ${fmtN(c.minSum)} soʻm. Yana ${fmtN(c.minSum-sub)} soʻm qoʻshing`:'';
+const ptOf=b=>{const la=b.lat==null||b.lat===''?NaN:+b.lat,lo=b.lng==null||b.lng===''?NaN:+b.lng;return Number.isFinite(la)&&Number.isFinite(lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180?{lat:la,lng:lo}:null};
+const yKey=c=>c.yandexGeoKey||c.yandexKey||cl(E.YANDEX_GEO_KEY,80).replace(/[^\w-]/g,'')||cl(E.YANDEX_MAPS_KEY,80).replace(/[^\w-]/g,'');
+async function getJson(url,ms=6000){const r=await fetch(url,{signal:AbortSignal.timeout(ms),headers:{'user-agent':UA,'accept-language':'uz,ru'}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
+const GC=new Map(),RC=new Map(),memo=(m,k,v)=>{m.set(k,v);if(m.size>500)m.delete(m.keys().next().value);return v};
+async function geoYandex(q,key,c){
+  const u=new URL(YGEO);u.search=new URLSearchParams({apikey:key,geocode:q,format:'json',results:'1',lang:'ru_RU',ll:c.lng+','+c.lat,spn:'0.3,0.3',rspn:'1'});
+  const j=await getJson(u),f=((((j||{}).response||{}).GeoObjectCollection||{}).featureMember||[])[0];if(!f)return null;
+  const o=f.GeoObject,m=(o.metaDataProperty||{}).GeocoderMetaData||{},p=String((o.Point||{}).pos||'').split(' ').map(Number);
+  if(p.length!==2||!p.every(Number.isFinite))return null;
+  return{lat:p[1],lng:p[0],text:cl(m.text,200),apx:!['exact','number','near'].includes(m.precision)};
+}
+async function geoOsm(q,c){
+  const d=.15,u=new URL(NOM+'/search');u.search=new URLSearchParams({format:'jsonv2',limit:'1',countrycodes:'uz',q,viewbox:[c.lng-d,c.lat+d,c.lng+d,c.lat-d].join(','),bounded:'1','accept-language':'uz,ru'});
+  const r=(await getJson(u))[0];if(!r)return null;
+  return{lat:+r.lat,lng:+r.lon,text:cl(r.display_name,200),apx:!/^(house|building)$/.test(r.addresstype||r.type||'')};
+}
+async function geocode(addr,c){
+  const k=addr.toLowerCase().replace(/\s+/g,' ');if(GC.has(k))return GC.get(k);
+  const key=yKey(c);let g=null;
+  if(key){try{g=await geoYandex(addr,key,c)}catch(e){console.error('Yandex geokoder xatosi:',e.message)}}
+  if(!g){try{g=await geoOsm(addr,c)}catch(e){console.error('OSM geokoder xatosi:',e.message)}}
+  return g?memo(GC,k,g):null;
+}
+const shortRu=s=>String(s||'').replace(/^улица\s+(.+)$/i,'$1 koʻchasi');
+async function revgeo(la,lo,c){
+  const k=la.toFixed(5)+','+lo.toFixed(5);if(RC.has(k))return RC.get(k);
+  const key=yKey(c);let a='';
+  if(key){try{
+    const u=new URL(YGEO);u.search=new URLSearchParams({apikey:key,geocode:lo+','+la,format:'json',results:'1',kind:'house',lang:'ru_RU'});
+    const fm=((((await getJson(u)).response||{}).GeoObjectCollection||{}).featureMember||[])[0],o=fm&&fm.GeoObject;
+    if(o){const comp=((((o.metaDataProperty||{}).GeocoderMetaData||{}).Address||{}).Components)||[],g=kd=>{const x=comp.filter(y=>y.kind===kd).pop();return x?x.name:''};
+      a=[[shortRu(g('street')),g('house')].filter(Boolean).join(', '),g('district'),g('locality')].filter(Boolean).filter((x,i,r)=>r.indexOf(x)===i).join(', ')||cl(o.name,120)}
+  }catch(e){console.error('Yandex teskari geokoder xatosi:',e.message)}}
+  if(!a){try{const d=await getJson(NOM+'/reverse?format=jsonv2&addressdetails=1&accept-language=uz,ru&zoom=17&lat='+la+'&lon='+lo),x=d.address||{};a=[x.road,x.house_number,x.neighbourhood||x.suburb,x.village||x.town||x.city].filter(Boolean).join(', ')||String(d.display_name||'').split(',').slice(0,3).join(',').trim()}catch(e){}}
+  a=cl(a,200);return a?memo(RC,k,a):'';
+}
+// Yoʻl masofasi (OSRM). Xizmat javob bermasa: toʻgʻri chiziq × 1.3 (taxminiy, est=1)
+async function roadKm(la,lo,c){
+  const air=hav(c.lat,c.lng,la,lo);
+  try{
+    const j=await getJson(`${OSRM}/route/v1/driving/${c.lng},${c.lat};${lo},${la}?overview=false&alternatives=false&steps=false`,5000),m=j&&j.code==='Ok'&&j.routes&&j.routes[0]&&j.routes[0].distance;
+    if(m>0)return{km:Math.max(m/1000,air),est:0,air};
+  }catch(e){console.error('OSRM xatosi:',e.message)}
+  return{km:air*1.3,est:1,air};
+}
+// Yetkazish narxi: xaritadan belgilangan nuqta (lat/lng) boʻlsa — shu nuqta, boʻlmasa — yozilgan manzil geokodlanadi
+async function quote(b){
+  const c=cfgFull();if(!c.delOn)return{on:0,fee:0,km:0};
+  let p=ptOf(b),src='pin',found='',apx=0;
+  if(!p){
+    const addr=cl(b.addr,200);if(addr.length<3)throw new Error('Yetkazish manzilini yozing yoki xaritadan belgilang');
+    const g=await geocode(addr,c);if(!g)throw new Error('Manzil topilmadi. Xaritadan joyingizni belgilang');
+    p={lat:g.lat,lng:g.lng};src='addr';found=g.text;apx=g.apx?1:0;
+  }
+  const d=await roadKm(p.lat,p.lng,c);
+  if(d.air>MAXKM)throw new Error(src==='pin'?'Bu joy yetkazish hududidan tashqarida':'Manzil yetkazish hududidan tashqarida yoki notoʻgʻri aniqlandi. Xaritadan belgilang');
+  const km=Math.round(d.km*10)/10;
+  return{on:1,fee:feeOf(km,c),km,lat:+p.lat.toFixed(6),lng:+p.lng.toFixed(6),src,found,apx,est:d.est};
+}
 // ---- Supabase (REST, kutubxonasiz) ----
 const sbh=x=>({apikey:SB.k,...(SB.k.startsWith('sb_')?{}:{authorization:'Bearer '+SB.k}),...x});
 async function sbFetch(url,opt,tries=3){let err;for(let i=0;i<tries;i++){try{const r=await fetch(url,opt);if(r.ok||r.status===409)return r;err=new Error('Supabase '+r.status+': '+(await r.text()).slice(0,180))}catch(e){err=e}await new Promise(s=>setTimeout(s,400*(i+1)))}throw err}
@@ -100,7 +166,7 @@ const RT={a:' (admin)',c:' (kuryer)',p:' (panel)'},LG={acc:'✅ Qabul qildi',coo
 // Buyurtma xabari: ma'lumot + kim nima qilgani (tugmalar tepasida)
 function msgText(o){
   const who=o.uid?`<a href="tg://user?id=${o.uid}">${h(o.name)}</a>`:h(o.name);
-  let t=`${emo(o)} <b>Buyurtma #${o.id}</b> · <i>${lab(o)}</i>\n👤 ${who}\n📞 ${h(o.phone)}\n📍 ${h(o.addr)}\n━━━━━━━━\n`+o.items.map(i=>`• ${h(i.n)} × ${i.q} — ${(i.p*i.q).toLocaleString('ru-RU')}`).join('\n')+(o.fee?`\n🚚 Yetkazish${o.km?` (${o.km} km)`:''} — ${o.fee.toLocaleString('ru-RU')}`:'')+`\n━━━━━━━━\n💰 <b>Jami: ${o.total.toLocaleString('ru-RU')} soʻm</b> (${o.pay})`+(o.note?`\n💬 ${h(o.note)}`:'')+(o.lat!=null?`\n🗺 <a href="https://yandex.uz/maps/?pt=${o.lng},${o.lat}&amp;z=17&amp;l=map">Yandex</a> · <a href="https://www.google.com/maps?q=${o.lat},${o.lng}">Google</a>`:'');
+  let t=`${emo(o)} <b>Buyurtma #${o.id}</b> · <i>${lab(o)}</i>\n👤 ${who}\n📞 ${h(o.phone)}\n📍 ${h(o.addr)}\n━━━━━━━━\n`+o.items.map(i=>`• ${h(i.n)} × ${i.q} — ${(i.p*i.q).toLocaleString('ru-RU')}`).join('\n')+(o.fee?`\n🚚 Yetkazish${o.km?` (${o.km} km)`:''} — ${o.fee.toLocaleString('ru-RU')}${o.es||o.ax?' ⚠️ taxminiy':''}`:'')+`\n━━━━━━━━\n💰 <b>Jami: ${o.total.toLocaleString('ru-RU')} soʻm</b> (${o.pay})`+(o.note?`\n💬 ${h(o.note)}`:'')+(o.lat!=null?`\n🗺 <a href="https://yandex.uz/maps/?pt=${o.lng},${o.lat}&amp;z=17&amp;l=map">Yandex</a> · <a href="https://www.google.com/maps?q=${o.lat},${o.lng}">Google</a>${o.ls==='addr'?` (manzil matndan aniqlandi${o.ax?', taxminiy':''})`:''}`:'');
   const L=(o.log||[]).filter(e=>LG[e.k]);
   if(L.length)t+='\n━━━━━━━━\n'+L.map(e=>`${LG[e.k]}: <b>${h(e.by||'')}</b>${RT[e.r]||''} · ${tm(e.t)}`).join('\n');
   return t}
@@ -121,7 +187,7 @@ async function tgSend(o,role){
   const chat=role==='a'?CH_A:CH_C;
   const r=await tgCall('sendMessage',{chat_id:chat,text:msgText(o),parse_mode:'HTML',disable_web_page_preview:true,reply_markup:kb(o,role)});
   (o.m||(o.m={}))[role]={c:chat,i:r.message_id};
-  if(o.lat!=null)await tgCall('sendLocation',{chat_id:chat,latitude:o.lat,longitude:o.lng}).catch(()=>{});
+  if(o.lat!=null&&!o.ax)await tgCall('sendLocation',{chat_id:chat,latitude:o.lat,longitude:o.lng}).catch(()=>{});
 }
 async function tg(o){
   if(!tgOn())return false;
@@ -333,8 +399,8 @@ async function bcStart(b,res){
 // ---- auth ----
 const sign=x=>crypto.createHmac('sha256',SEC).update(x).digest('hex'),sha=x=>crypto.createHash('sha256').update(x).digest();
 const authed=req=>{const m=(req.headers.cookie||'').match(/(?:^|; )s=(\d+)\.([a-f0-9]+)/);if(!m||!SEC)return false;const a=Buffer.from(sign(m[1])),b=Buffer.from(m[2]);return a.length===b.length&&crypto.timingSafeEqual(a,b)&&+m[1]>Date.now()};
-const tries=new Map(),ordT=new Map(),postT=new Map();
-setInterval(()=>{const n=Date.now();for(const m of[tries,ordT,postT])for(const[k,v]of m)if(Array.isArray(v)?!v.some(t=>n-t<6e5):n-v.t>6e5)m.delete(k)},6e5).unref();
+const tries=new Map(),ordT=new Map(),postT=new Map(),quoT=new Map();
+setInterval(()=>{const n=Date.now();for(const m of[tries,ordT,postT,quoT])for(const[k,v]of m)if(Array.isArray(v)?!v.some(t=>n-t<6e5):n-v.t>6e5)m.delete(k)},6e5).unref();
 const body=(req,max=2e5)=>new Promise((r,j)=>{let d='';req.on('data',c=>{d+=c;if(d.length>max){req.destroy();j(new Error('big'))}});req.on('end',()=>{try{r(JSON.parse(d||'{}'))}catch{j(new Error('json'))}})});
 const gz=(res,body,h)=>{if(body.length>1024&&/\bgzip\b/.test((res.req&&res.req.headers['accept-encoding'])||'')){h['content-encoding']='gzip';h.vary='accept-encoding';return zlib.gzipSync(body)}return body};
 const send=(res,c,o,hd={})=>{const h={'content-type':'application/json; charset=utf-8','cache-control':'no-store',...hd};const b=gz(res,Buffer.from(JSON.stringify(o)),h);res.writeHead(c,h);res.end(b)};
@@ -359,6 +425,7 @@ const server=http.createServer(async(req,res)=>{try{
     let m;
     if(m=u.match(/^\/photos\/([\w-]+\.jpg)$/))return sendFile(res,path.join(PUB,'photos',m[1]),'image/jpeg',{'cache-control':'public, max-age=604800'});
     if(!SB&&(m=u.match(/^\/img\/([\w-]+\.jpg)$/)))return sendFile(res,path.join(UP,m[1]),'image/jpeg',{'cache-control':'public, max-age=2592000'});
+    if(u==='/api/cfg')return send(res,200,cfgPub());
     if(u==='/api/menu')return send(res,200,db.menu.filter(x=>x.a));
     if(u==='/api/cats')return send(res,200,db.cats);
     if(u==='/api/slides')return send(res,200,db.slides.filter(x=>x.a));
@@ -384,7 +451,7 @@ const server=http.createServer(async(req,res)=>{try{
       if(!authed(req))return send(res,401,{error:'Ruxsat yoʻq'});
       const l=Object.values(db.users).sort((a,b)=>b.t1-a.t1);return send(res,200,{total:l.length,users:l.slice(0,500)});
     }
-    if(u==='/api/admin/data')return authed(req)?send(res,200,{menu:db.menu,cats:db.cats,settings:cfgFull(),gmap:!!cfgPub().googleKey,orders:db.orders.slice(-300),slides:db.slides,gallery:db.gallery,about:db.about,tg:{on:tgOn(),courier:!!CH_C,bot:BOT.un,mode:BOT.mode,app:WA},today:statsRange(dkey(Date.now()),dkey(Date.now())).tot,db:SB?'supabase':'local',keep:KEEP}):send(res,401,{error:'Ruxsat yoʻq'});
+    if(u==='/api/admin/data')return authed(req)?send(res,200,{menu:db.menu,cats:db.cats,settings:cfgFull(),ymap:!!cfgPub().yandexKey,orders:db.orders.slice(-300),slides:db.slides,gallery:db.gallery,about:db.about,tg:{on:tgOn(),courier:!!CH_C,bot:BOT.un,mode:BOT.mode,app:WA},today:statsRange(dkey(Date.now()),dkey(Date.now())).tot,db:SB?'supabase':'local',keep:KEEP}):send(res,401,{error:'Ruxsat yoʻq'});
     res.writeHead(404,{'content-type':'text/plain; charset=utf-8'});return res.end('404 — sahifa topilmadi');
   }
   if(M!=='POST')return res.writeHead(405).end();
@@ -399,6 +466,11 @@ const server=http.createServer(async(req,res)=>{try{
   if(!/^application\/json/i.test(req.headers['content-type']||''))return send(res,415,{error:'Notoʻgʻri soʻrov turi'});
   const pn=Date.now(),pl=(postT.get(ip)||[]).filter(t=>pn-t<6e4);if(pl.length>=120)return send(res,429,{error:'Juda koʻp soʻrov'});pl.push(pn);postT.set(ip,pl);
   let b;try{b=await body(req,u==='/api/admin/upload'&&authed(req)?5e6:2e5)}catch(e){return send(res,e.message==='big'?413:400,{error:e.message==='big'?'Soʻrov juda katta (rasm hajmi katta)':'Xato soʻrov'})}
+  if(u==='/api/quote'||u==='/api/rev'){
+    const qn=Date.now(),ql=(quoT.get(ip)||[]).filter(t=>qn-t<6e4);if(ql.length>=40)return send(res,429,{error:'Juda koʻp soʻrov. Birozdan keyin urinib koʻring'});ql.push(qn);quoT.set(ip,ql);
+    if(u==='/api/rev'){const p=ptOf(b);if(!p)return send(res,400,{error:'Koordinata notoʻgʻri'});return send(res,200,{addr:await revgeo(p.lat,p.lng,cfgFull())})}
+    try{return send(res,200,await quote(b))}catch(e){return send(res,400,{error:e.message})}
+  }
   if(u==='/api/order'){
     if(b.hp)return send(res,200,{id:0});
     const now=Date.now(),L=(ordT.get(ip)||[]).filter(t=>now-t<6e5);
@@ -411,12 +483,15 @@ const server=http.createServer(async(req,res)=>{try{
     if(!phone)return send(res,400,{error:'Telefon raqamini toʻliq kiriting: +998 XX XXX XX XX'});
     if(!addr)return send(res,400,{error:'Yetkazish manzilini kiriting'});
     const la=b.lat==null||b.lat===''?NaN:+b.lat,lo=b.lng==null||b.lng===''?NaN:+b.lng,geo=Number.isFinite(la)&&Number.isFinite(lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180;
-    const tu=tgUser(req),o={id:++db.lastId,t:now,name,phone,addr,note:cl(b.note,300),pay:'Naqd',items,total,st:0,tg:null,log:[{k:'new',t:now}],m:{},...(tu?{uid:tu.id}:{}),...(geo?{lat:+la.toFixed(6),lng:+lo.toFixed(6)}:{})};
+    const cf=cfgFull(),me=minErr(total,cf);if(me)return send(res,400,{error:me});
+    let dq={fee:0,km:0};if(cf.delOn){try{dq=await quote(b)}catch(e){return send(res,400,{error:e.message})}}
+    const sub=total,fee=dq.fee||0,gp=dq.lat!=null?{lat:dq.lat,lng:dq.lng}:geo?{lat:+la.toFixed(6),lng:+lo.toFixed(6)}:null;
+    const tu=tgUser(req),o={id:++db.lastId,t:now,name,phone,addr,note:cl(b.note,300),pay:'Naqd',items,sub,fee,km:dq.km||0,total:sub+fee,st:0,tg:null,log:[{k:'new',t:now}],m:{},...(tu?{uid:tu.id}:{}),...(gp?{lat:gp.lat,lng:gp.lng}:{}),...(dq.src?{ls:dq.src}:{}),...(dq.src==='addr'&&dq.apx?{ax:1}:{}),...(dq.est?{es:1}:{})};
     L.push(now);ordT.set(ip,L);db.orders.push(o);
     if(tu){const x=touchUser(tu,true);x.n++;x.ph=phone;x.ad=addr;x.t1=now;saveUser(x)}
     if(SB)sbPut('meta',{lastId:db.lastId}).catch(()=>{});
     await saveOrder(o).catch(e=>console.error('Buyurtmani saqlash xatosi:',e.message));
-    send(res,200,{id:o.id,total:o.total});
+    send(res,200,{id:o.id,total:o.total,sub:o.sub,fee:o.fee,km:o.km});
     tg(o).then(ok=>{o.tg=ok;return saveOrder(o)}).catch(e=>console.error('Buyurtmani yangilash xatosi:',e.message));
     return;
   }
@@ -439,7 +514,7 @@ const server=http.createServer(async(req,res)=>{try{
   }
   if(u==='/api/admin/bc/send')return bcStart(b,res);
   if(u==='/api/admin/bc/cancel'){if(bc.job&&bc.job.state==='running')bc.job.cancel=true;return send(res,200,{ok:1})}
-  if(u==='/api/admin/settings'&&b.settings&&typeof b.settings==='object'){db.settings=cleanSettings(b.settings);try{await saveK('settings')}catch(e){return fail(res,e)}return send(res,200,{ok:1,settings:cfgFull(),gmap:!!cfgPub().googleKey})}
+  if(u==='/api/admin/settings'&&b.settings&&typeof b.settings==='object'){db.settings=cleanSettings(b.settings);try{await saveK('settings')}catch(e){return fail(res,e)}return send(res,200,{ok:1,settings:cfgFull(),ymap:!!cfgPub().yandexKey})}
   if(u==='/api/admin/slides'&&Array.isArray(b.slides)){db.slides=b.slides.slice(0,20).map(cleanSlide).filter(s=>s.h);try{await saveK('slides')}catch(e){return fail(res,e)}gc();return send(res,200,{ok:1,slides:db.slides})}
   if(u==='/api/admin/about'&&b.about&&typeof b.about==='object'){db.about=cleanAbout(b.about);try{await saveK('about')}catch(e){return fail(res,e)}gc();return send(res,200,{ok:1,about:db.about})}
   if(u==='/api/admin/gallery'&&Array.isArray(b.gallery)){db.gallery=b.gallery.slice(0,60).map(cleanGal).filter(g=>g.img);try{await saveK('gallery')}catch(e){return fail(res,e)}gc();return send(res,200,{ok:1,gallery:db.gallery})}
