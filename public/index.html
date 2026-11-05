@@ -536,9 +536,21 @@ function mkYandex(){
   let ctr=[CFG.lng,CFG.lat],z=16,was=false,cbS=()=>{},cbE=()=>{};
   const map=new YMap($('mmap'),{location:{center:ctr,zoom:z}});
   map.addChild(new YMapDefaultSchemeLayer());map.addChild(new YMapDefaultFeaturesLayer());
-  // «Yandex Xaritalarda ochish» tugmasi pastki panel ustiga tushmasligi uchun yashiriladi
-  let hq=0;const hideOpen=()=>{hq=0;$('mmap').querySelectorAll('a,button,[role="button"],div,span').forEach(el=>{if(el.children.length===0&&/Открыть\s+Яндекс\s+Карты|Open\s+in\s+Yandex|Yandex\s+Xaritalarda/i.test(el.textContent||'')){(el.closest('a,button,[role="button"]')||el).style.display='none'}})};
-  new MutationObserver(()=>{if(!hq)hq=requestAnimationFrame(hideOpen)}).observe($('mmap'),{childList:true,subtree:true});
+  // Yandexning «Yandex Xaritalarda ochish» tugmasi pastki panel ustiga tushmasligi uchun yashiriladi
+  const RX=/Открыть\s+Яндекс\s+Карты|Open\s+in\s+Yandex|Yandex\s+Xaritalarda/i;let hq=0,hn=0;
+  const txt=el=>(el.textContent||'')+' '+((el.getAttribute&&(el.getAttribute('aria-label')||el.getAttribute('title')))||'');
+  const scan=root=>{
+    root.querySelectorAll('*').forEach(el=>{
+      if(el.shadowRoot)scan(el.shadowRoot);
+      const t=txt(el);if(t.length>90||!RX.test(t)||[...el.children].some(c=>RX.test(txt(c))))return;
+      const tg=(el.closest&&el.closest('a,button,[role="button"]'))||el;
+      if(tg===document.body||tg.id==='mp'||tg.contains($('mmap'))||tg.contains($('msheet')))return;
+      if(tg.style.display!=='none'){tg.style.setProperty('display','none','important');hn++}
+    });
+  };
+  const hideOpen=()=>{hq=0;if(!$('mp').hidden)scan(document.body)};
+  new MutationObserver(()=>{if(!hq)hq=requestAnimationFrame(hideOpen)}).observe(document.body,{childList:true,subtree:true});
+  [400,1200,3000].forEach(ms=>setTimeout(()=>{hideOpen();if(ms===3000)try{fetch('/api/maplog',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({i:'Ochish tugmasi yashirildi: '+hn+' ta'})})}catch(e){}},ms));
   map.addChild(new YMapListener({layer:'any',onUpdate:({location,mapInAction})=>{ctr=location.center;z=location.zoom;if(mapInAction){if(!was){was=true;cbS()}}else{was=false;cbE()}}}));
   return {center:()=>({lat:ctr[1],lng:ctr[0]}),set:(a,b,zz)=>map.update({location:{center:[b,a],zoom:zz||17}}),start:f=>{cbS=f},end:f=>{cbE=f},resize:()=>{},zoom:d=>map.update({location:{zoom:Math.max(3,Math.min(19,z+d)),duration:200}})};
 }
@@ -556,10 +568,17 @@ function rev(){
     if(cur&&cur.lat===c.lat&&cur.lng===c.lng){cur.addr=a;setA(a||'Nuqta tanlandi',!a)}
   },450);
 }
+let gw=0;
+function stopLoc(){if(gw){navigator.geolocation.clearWatch(gw);gw=0}}
 function locate(){
   if(!navigator.geolocation){setA('Brauzer joylashuvni aniqlay olmaydi');return}
-  setA('Joylashuvingiz aniqlanmoqda…',1);
-  navigator.geolocation.getCurrentPosition(p=>MX.set(p.coords.latitude,p.coords.longitude,17),()=>setA('Joylashuvga ruxsat berilmadi. Xaritani surib belgilang.'),{enableHighAccuracy:true,timeout:12000});
+  stopLoc();setA('Joylashuvingiz aniqlanmoqda…',1);
+  let best=null;
+  const tm=setTimeout(stopLoc,15000);
+  gw=navigator.geolocation.watchPosition(p=>{
+    if(!best||p.coords.accuracy<best.coords.accuracy){best=p;MX.set(p.coords.latitude,p.coords.longitude,17)}
+    if(p.coords.accuracy<=40){clearTimeout(tm);stopLoc()}
+  },er=>{clearTimeout(tm);stopLoc();if(!best)setA(er.code===1?'Joylashuvga ruxsat berilmadi. Telefon sozlamasidan yoqing yoki xaritani surib belgilang.':'Joylashuv aniqlanmadi. Xaritani surib belgilang.')},{enableHighAccuracy:true,maximumAge:0,timeout:15000});
 }
 async function openMap(){
   $('mp').hidden=false;fitSheet();
@@ -572,6 +591,7 @@ async function openMap(){
     try{MX=useY?mkYandex():mkLeaflet()}catch(e){if(useY){yFail(e);return openMap()}throw e}
     MX.start(()=>{$('pin').classList.add('up');$('msg').hidden=true;$('msq').blur()});MX.end(()=>{$('pin').classList.remove('up');rev()});
     $('zin').onclick=()=>MX.zoom(1);$('zout').onclick=()=>MX.zoom(-1);
+    $('mmap').addEventListener('pointerdown',stopLoc,{passive:true});$('locb').onclick=()=>MX&&locate();
   }
   // nuqta boʻlsa — shu nuqta; yozilgan manzil topilgan boʻlsa — oʻsha joy (tekshirish uchun); aks holda mijoz joylashuvi
   setTimeout(()=>{MX.resize();if(pick)MX.set(pick.lat,pick.lng,17);else if(Q.ok&&Q.src==='addr')MX.set(Q.lat,Q.lng,17);else if(!MX.loc){MX.loc=1;locate()}},80);
