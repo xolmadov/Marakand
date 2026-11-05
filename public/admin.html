@@ -152,7 +152,7 @@ const setV=()=>{const g=D.tg,s=D.settings||{},ok=(c,t)=>`<span class="bd ${c?'s3
 <div class="hint" style="margin-top:8px">Masofa shu nuqtadan boshlab hisoblanadi. Yandex Xaritalarda kafe joyini oching, xaritaning aynan oʻsha nuqtasiga oʻng tugma bosib koordinatalarni nusxalang (masalan <b>40.892109, 72.252442</b>).</div>
 <div style="margin-top:12px"><button class="btn p" data-a="setsave">Saqlash</button></div>
 <div class="hint" style="margin:16px 0 6px"><b>Sinab koʻrish.</b> Manzil yozing: sayt shu manzilni qanday topishi, masofa va narxni koʻrasiz (avval «Saqlash» ni bosing).</div>
-<div class="r" style="gap:8px;flex-wrap:wrap;justify-content:flex-start"><input id="qa" placeholder="Masalan: Alisher Navoiy koʻchasi 25" style="flex:1;min-width:220px"><button class="btn" data-a="qtest">Narxni sinab koʻrish</button></div><div id="qtr" class="hint" style="margin-top:8px"></div></div>
+<div class="r" style="gap:8px;flex-wrap:wrap;justify-content:flex-start"><input id="qa" placeholder="Manzil yoki koordinata: 40.8945, 72.2524" style="flex:1;min-width:220px"><button class="btn" data-a="qtest">Narxni sinab koʻrish</button></div><div id="qtr" class="hint" style="margin-top:8px"></div></div>
 <div class="box"><b>Minimal buyurtma</b><div class="hint" style="margin:3px 0 12px">Yoqilsa, savatdagi taomlar summasi shu miqdordan kam boʻlsa mijoz buyurtma bera olmaydi va yana qancha qoʻshish kerakligi koʻrsatiladi (yetkazish narxi hisobga olinmaydi). Oʻchirilsa, cheklov yoʻq.</div>
 <label class="chk" style="margin-bottom:12px"><input type="checkbox" data-p="settings.minOn" ${s.minOn?'checked':''}> Minimal buyurtma summasini yoqish</label>
 <div><label class="l">Minimal summa (soʻm)</label><input type="number" inputmode="numeric" data-p="settings.minSum" value="${s.minSum}"></div>
@@ -320,7 +320,7 @@ document.addEventListener('click',e=>{
     }
     else if(a==='qtest'){
       const q=$('qa').value.trim();if(!q)throw new Error('Sinash uchun manzilni yozing');$('qtr').textContent='Hisoblanmoqda…';
-      try{const r=await api('/api/quote',{addr:q});$('qtr').innerHTML=r.on===0?'Yetkazish narxi oʻchirilgan (yuqoridagi katakcha).':`Topilgan joy: <b>${esc(r.found||'—')}</b><br>Masofa: <b>${r.km} km</b> · Yetkazish narxi: <b>${fmt(r.fee)}</b>${r.apx?'<br><span style="color:var(--y)">Manzil taxminiy aniqlandi (aniq uy topilmadi)</span>':''}${r.est?'<br><span style="color:var(--y)">Masofa taxminiy: yoʻl xizmati javob bermadi</span>':''}`}
+      try{const cm=q.match(/^\s*(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)\s*$/),r=await api('/api/admin/quote',cm?{lat:+cm[1],lng:+cm[2]}:{addr:q});$('qtr').innerHTML=r.on===0?'Yetkazish narxi oʻchirilgan (yuqoridagi katakcha).':`Topilgan joy: <b>${esc(r.found||'—')}</b><br>Masofa: <b>${r.km} km</b> · Yetkazish narxi: <b>${fmt(r.fee)}</b>${r.apx?'<br><span style="color:var(--y)">Manzil taxminiy aniqlandi (aniq uy topilmadi)</span>':''}${r.est?'<br><span style="color:var(--y)">Masofa taxminiy: yoʻl xizmati javob bermadi</span>':''}`}
       catch(er){$('qtr').innerHTML='<span style="color:var(--r)">'+esc(er.message)+'</span>'}
     }
     else if(a==='tgtest'){$('tgr').textContent='Yuborilmoqda…';const r=await api('/api/admin/telegram-test',{});$('tgr').innerHTML=r.ok?`<span class="bd s3">Muvaffaqiyatli: ${esc(r.bot)}</span><div class="hint">${(r.chats||[]).map(esc).join('<br>')}</div>`:`<span class="bd bad">Xato: ${esc(r.error)}</span>`}
