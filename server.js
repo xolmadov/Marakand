@@ -45,9 +45,11 @@ const feeOf=(km,c)=>c.delOn?c.delFirst+Math.ceil(Math.max(0,km-1))*c.delKm:0;
 const minErr=(sub,c)=>c.minOn&&c.minSum>0&&sub<c.minSum?`Minimal buyurtma summasi ${fmtN(c.minSum)} soʻm. Yana ${fmtN(c.minSum-sub)} soʻm qoʻshing`:'';
 const ptOf=b=>{const la=b.lat==null||b.lat===''?NaN:+b.lat,lo=b.lng==null||b.lng===''?NaN:+b.lng;return Number.isFinite(la)&&Number.isFinite(lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180?{lat:la,lng:lo}:null};
 const yKey=c=>c.yandexGeoKey||c.yandexKey||cl(E.YANDEX_GEO_KEY,80).replace(/[^\w-]/g,'')||cl(E.YANDEX_MAPS_KEY,80).replace(/[^\w-]/g,'');
-async function getJson(url,ms=6000){const r=await fetch(url,{signal:AbortSignal.timeout(ms),headers:{'user-agent':UA,'accept-language':'uz,ru'}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
+let SITE=(E.SITE_URL||'').replace(/\/+$/,'');const BUILD='2026-11-05-d';
+const yh=url=>SITE&&/yandex/.test(String(url))?{referer:SITE+'/',origin:SITE}:{};
+async function getJson(url,ms=6000){const r=await fetch(url,{signal:AbortSignal.timeout(ms),headers:{'user-agent':UA,'accept-language':'uz,ru',...yh(url)}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
 const GC=new Map(),RC=new Map(),memo=(m,k,v)=>{m.set(k,v);if(m.size>500)m.delete(m.keys().next().value);return v};
-const YST={e:'',t:0};let MAPERR=null; // YST: oxirgi Yandex geokoder xatosi; MAPERR: brauzerdagi oxirgi xarita xatosi
+const YST={e:'',t:0};let MAPERR=null,MAPINFO=''; // YST: oxirgi Yandex geokoder xatosi; MAPERR: brauzerdagi oxirgi xarita xatosi
 // Yandex geokoder: avval oʻzbekcha (uz_UZ), boʻlmasa ruscha (ru_RU) javob
 async function ygeoReq(key,extra){
   let last=null;
@@ -88,18 +90,23 @@ async function yRev(key,la,lo,kind){
   return{text:cl(m.text||[o.description,o.name].filter(Boolean).join(', '),200),street:comp.some(x=>x.kind==='street'),house:comp.some(x=>x.kind==='house')};
 }
 // Koordinata boʻyicha toʻliq manzil: viloyat, tuman, aholi punkti, koʻcha, uy raqami
+let RLOG=[];
 async function revgeo(la,lo,c,nc){
   const k=la.toFixed(5)+','+lo.toFixed(5);if(!nc&&RC.has(k))return RC.get(k);
+  RLOG=[];
   const keys=[...new Set([c.yandexGeoKey,c.yandexKey,cl(E.YANDEX_GEO_KEY,80).replace(/[^\w-]/g,''),cl(E.YANDEX_MAPS_KEY,80).replace(/[^\w-]/g,'')].filter(Boolean))];
   let best=null,src='';
+  if(!keys.length)RLOG.push('Yandex kaliti kiritilmagan');
   for(const key of keys){
+    const tag='kalit …'+key.slice(-4);
     try{
       for(const kind of['house','street','']){
         const r=await yRev(key,la,lo,kind),sc=x=>x?(x.house?2:x.street?1:0):-1;
-        if(sc(r)>sc(best))best=r;if(best&&best.house)break;
+        RLOG.push(tag+' ['+(kind||'umumiy')+']: '+(r?(r.house?'uy topildi':r.street?'koʻcha topildi':'faqat aholi punkti'):'natija yoʻq'));
+        if(sc(r)>sc(best))best=r;if(best&&(best.house||best.street))break;
       }
       if(best)break;
-    }catch(e){console.error('Yandex teskari geokoder xatosi:',e.message)}
+    }catch(e){RLOG.push(tag+': xato '+e.message);console.error('Yandex teskari geokoder xatosi:',e.message)}
   }
   let a=best?noC(best.text):'';src=best?'yandex:'+(best.house?'uy':best.street?'koʻcha':'aholi punkti'):'';
   // Yandex koʻcha/uyni topa olmasa — OpenStreetMap maʼlumoti bilan toʻldiramiz
@@ -108,8 +115,8 @@ async function revgeo(la,lo,c,nc){
       const d=await getJson(NOM+'/reverse?format=jsonv2&addressdetails=1&accept-language=uz,ru&zoom=18&lat='+la+'&lon='+lo),x=d.address||{};
       const base=a||[x.state,x.county||x.city_district||x.district,x.village||x.town||x.city||x.hamlet].filter(Boolean).join(', ');
       const add=[x.road,x.house_number].filter(p=>p&&!base.toLowerCase().includes(String(p).toLowerCase()));
-      a=[base,...add].filter(Boolean).join(', ');if(add.length)src+=(src?'+':'')+'osm';else if(!src)src='osm';
-    }catch(e){}
+      a=[base,...add].filter(Boolean).join(', ');RLOG.push('OSM: '+(add.length?'koʻcha/uy qoʻshildi':'koʻcha ham topilmadi'));if(add.length)src+=(src?'+':'')+'osm';else if(!src)src='osm';
+    }catch(e){RLOG.push('OSM: xato '+e.message)}
   }
   a=cl(a,200);LREV=src;return a?memo(RC,k,a):'';
 }
@@ -456,6 +463,7 @@ const page=(res,f,extra={},frame=false)=>fs.readFile(path.join(PUB,f),'utf8',(e,
 });
 const fail=(res,e)=>{console.error('Saqlash xatosi:',e.message);send(res,500,{error:'Saqlab boʻlmadi: '+e.message})};
 const server=http.createServer(async(req,res)=>{try{
+  {const hh=req.headers.host;if(!E.SITE_URL&&hh&&/^[\w.-]+(:\d+)?$/.test(hh))SITE=(req.headers['x-forwarded-proto']==='https'||!/^(localhost|127\.)/.test(hh)?'https':'http')+'://'+hh}
   const M=req.method==='HEAD'?'GET':req.method,u=req.url.split('?')[0],ip=(req.headers['x-forwarded-for']||req.socket.remoteAddress||'').split(',')[0].trim();
   res.setHeader('x-content-type-options','nosniff');res.setHeader('referrer-policy','strict-origin-when-cross-origin');res.setHeader('permissions-policy','geolocation=(self), camera=(), microphone=(), payment=()');res.setHeader('cross-origin-opener-policy','same-origin');
   if(req.headers['x-forwarded-proto']==='https')res.setHeader('strict-transport-security','max-age=31536000; includeSubDomains');
@@ -510,7 +518,7 @@ const server=http.createServer(async(req,res)=>{try{
   let b;try{b=await body(req,u==='/api/admin/upload'&&authed(req)?5e6:2e5)}catch(e){return send(res,e.message==='big'?413:400,{error:e.message==='big'?'Soʻrov juda katta (rasm hajmi katta)':'Xato soʻrov'})}
   if(u==='/api/quote'||u==='/api/rev'||u==='/api/suggest'||u==='/api/maplog'){
     const sg=u==='/api/suggest',qk=sg?'s'+ip:ip,qn=Date.now(),ql=(quoT.get(qk)||[]).filter(t=>qn-t<6e4);if(ql.length>=(sg?90:40))return send(res,429,{error:'Juda koʻp soʻrov. Birozdan keyin urinib koʻring'});ql.push(qn);quoT.set(qk,ql);
-    if(u==='/api/maplog'){MAPERR={t:Date.now(),e:cl(b.e,300),csp:cl(b.csp,400)};return send(res,200,{ok:1})}
+    if(u==='/api/maplog'){if(b.i)MAPINFO=cl(b.i,200);else MAPERR={t:Date.now(),e:cl(b.e,300),csp:cl(b.csp,400)};return send(res,200,{ok:1})}
     if(sg)return send(res,200,{list:await suggest(b.q,cfgFull())});
     if(u==='/api/rev'){const p=ptOf(b);if(!p)return send(res,400,{error:'Koordinata notoʻgʻri'});return send(res,200,{addr:await revgeo(p.lat,p.lng,cfgFull())})}
     try{return send(res,200,await quote(b))}catch(e){return send(res,400,{error:e.message})}
@@ -571,9 +579,9 @@ const server=http.createServer(async(req,res)=>{try{
   }
   if(u==='/api/admin/ytest'){
     const c=cfgFull(),gk=yKey(c),jk=c.yandexKey||cl(E.YANDEX_MAPS_KEY,80).replace(/[^\w-]/g,'');
-    const chk=async url=>{try{const r=await fetch(url,{signal:AbortSignal.timeout(7000),headers:{'user-agent':UA}}),t=await r.text();return{ok:r.ok,status:r.status,msg:r.ok?'':t.slice(0,160)}}catch(e){return{ok:false,status:0,msg:e.message}}};
+    const chk=async url=>{try{const r=await fetch(url,{signal:AbortSignal.timeout(7000),headers:{'user-agent':UA,...yh(url)}}),t=await r.text();return{ok:r.ok,status:r.status,msg:r.ok?'':t.slice(0,160)}}catch(e){return{ok:false,status:0,msg:e.message}}};
     const no={ok:false,status:0,msg:'Kalit kiritilmagan'};
-    return send(res,200,{geo:gk?await chk(YGEO+'?'+new URLSearchParams({apikey:gk,geocode:'Poytug',format:'json',results:'1'})):no,js:jk?await chk('https://api-maps.yandex.ru/v3/?'+new URLSearchParams({apikey:jk,lang:'ru_RU'})):no,map:MAPERR,rev:await revgeo(c.lat,c.lng,c,1).catch(()=>''),revsrc:LREV,yerr:YST.e});
+    return send(res,200,{geo:gk?await chk(YGEO+'?'+new URLSearchParams({apikey:gk,geocode:'Poytug',format:'json',results:'1'})):no,js:jk?await chk('https://api-maps.yandex.ru/v3/?'+new URLSearchParams({apikey:jk,lang:'ru_RU'})):no,map:MAPERR,rev:await revgeo(c.lat,c.lng,c,1).catch(()=>''),revsrc:LREV,revlog:RLOG,yerr:YST.e,build:BUILD,info:MAPINFO});
   }
   if(u==='/api/admin/telegram-test'){
     if(!tgOn())return send(res,200,{ok:false,error:'BOT_TOKEN yoki CHAT_ID berilmagan. .env faylini tekshiring.'});
