@@ -100,13 +100,6 @@ input.f,textarea{width:100%;padding:13px 14px;border:1px solid var(--ln);border-
 .cnt{position:absolute;bottom:58px;right:max(20px,calc(50% - 580px));z-index:6;font:600 15px "Cormorant Garamond",Georgia,serif;color:#ffffff99;letter-spacing:.1em}.cnt b{color:var(--y);font-size:26px}
 .mapb{width:100%;margin-top:10px;display:flex;gap:8px;align-items:center;justify-content:center;border:1px solid #d6a84f77;color:var(--y);border-radius:14px;padding:12px;font-weight:600;transition:.2s}.mapb:hover{background:#d6a84f14}.mapb svg{width:20px;height:20px}
 .locok{margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;background:#d6a84f22;color:#ecd08a;border-radius:12px;padding:9px 12px;font-size:13px;font-weight:600}.locok button{color:var(--mut);font-size:12px;text-decoration:underline}
-.mp{position:fixed;inset:0;z-index:90;background:#000c;display:grid;place-items:center;padding:16px}.mp[hidden]{display:none}
-.mpb{width:min(100%,760px);height:min(90vh,660px);background:var(--n1);border:1px solid #d6a84f44;border-radius:26px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 80px #000}
-.mph{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;font:700 18px "Cormorant Garamond",Georgia,serif;color:#fff}.mph button{font-size:28px;color:var(--mut);line-height:1}
-.mm{position:relative;flex:1;min-height:0;background:#0a2a3b}#mmap{position:absolute;inset:0}
-.pin{position:absolute;left:50%;top:50%;width:48px;height:48px;transform:translate(-50%,-100%);z-index:650;pointer-events:none;filter:drop-shadow(0 6px 5px #0007);transition:transform .2s}.pin.up{transform:translate(-50%,-128%)}
-.loc{position:absolute;left:12px;bottom:34px;z-index:700;background:var(--n);color:var(--y);border:1px solid #d6a84f88;border-radius:99px;padding:10px 16px;font-weight:600;font-size:13px;box-shadow:0 8px 20px #0008}
-.mpf{padding:14px 20px 18px}.mpa{min-height:44px;color:#fff;font-weight:600;line-height:1.35;display:flex;align-items:center}.mpf .go{margin-top:8px}
 .leaflet-container{font-family:Manrope,system-ui,sans-serif}
 /* ---- Yevropa uslubidagi premium ustki qatlam ---- */
 body{background:radial-gradient(1100px 560px at 85% -8%,#0a3a52 0,transparent 62%),radial-gradient(900px 500px at -5% 40%,#06293b 0,transparent 60%),var(--n)}
@@ -296,8 +289,29 @@ body{padding-bottom:var(--dockh)}
 /* minimal buyurtma, yetkazish narxi holati, Yandex xarita tugmalari */
 .dq{margin:2px 0 10px;font-size:13px;line-height:1.55;color:var(--mut)}.dq b{color:var(--cr)}.dq .bad{color:var(--r)}.dq .wn{color:#ecd08a}
 .mnw{margin:14px 0 0;padding:12px 14px;border-radius:12px;background:#d6a84f22;color:#ecd08a;font-size:14px;line-height:1.5}.mnw b{color:#fff}
-.mpe{padding:8px 14px;font-size:12px;line-height:1.4;background:#d6a84f22;color:#ecd08a;word-break:break-word}
-.zm{position:absolute;right:12px;top:12px;z-index:700;display:grid;gap:8px}.zm button{width:42px;height:42px;border-radius:12px;background:var(--n);color:var(--y);border:1px solid #d6a84f88;font:600 22px/1 var(--sans);box-shadow:0 6px 16px #0008}
+/* xarita tanlash oynasi (butun ekran, Yandex Go uslubida) */
+.mp{position:fixed;inset:0;z-index:110;background:#eef0f2;overflow:hidden;color:#16213e;font-family:Manrope,system-ui,sans-serif}.mp[hidden]{display:none}
+#mmap{position:absolute;inset:0}
+.pin{position:absolute;left:50%;top:50%;width:54px;height:54px;transform:translate(-50%,-100%);z-index:5;pointer-events:none;filter:drop-shadow(0 6px 6px #0004);transition:transform .18s}.pin.up{transform:translate(-50%,-132%)}
+.pinsh{position:absolute;left:50%;top:50%;width:14px;height:6px;margin:-3px 0 0 -7px;border-radius:50%;background:#0003;z-index:4;pointer-events:none;transition:.18s}.pin.up+.pinsh{transform:scale(.6);opacity:.5}
+.mtop{position:absolute;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top,0px));display:flex;gap:10px;z-index:10}
+.mcl{width:52px;height:52px;flex:none;border-radius:50%;background:#fff;color:#16213e;display:grid;place-items:center;box-shadow:0 4px 16px #0003}
+.msr{flex:1;min-width:0;height:52px;border-radius:14px;background:#fff;box-shadow:0 4px 16px #0003;display:flex;align-items:center;gap:10px;padding:0 14px;color:#8a93a6}
+.msr input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:500 16px Manrope,system-ui,sans-serif;color:#16213e;padding:0;box-shadow:none}.msr input::placeholder{color:#9aa3b5}
+.msr button{color:#8a93a6;font-size:24px;line-height:1;padding:0 2px}
+.msg{position:absolute;left:12px;right:12px;top:calc(72px + env(safe-area-inset-top,0px));z-index:11;background:#fff;border-radius:14px;box-shadow:0 10px 30px #0004;max-height:42vh;overflow:auto}.msg[hidden]{display:none}
+.msg button{display:block;width:100%;text-align:left;padding:13px 16px;font:500 15px/1.35 Manrope,system-ui,sans-serif;color:#16213e;border-bottom:1px solid #eef0f3}.msg button:last-child{border:0}.msg .ms-e{padding:14px 16px;color:#8a93a6;font-size:14px}
+.msheet{position:absolute;left:0;right:0;bottom:0;z-index:12;background:#fff;border-radius:26px 26px 0 0;padding:22px 20px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px #0003;text-align:center}
+.mfab{position:absolute;right:12px;bottom:calc(100% + 16px);display:grid;gap:12px;justify-items:end}
+.mz{background:#fff;border-radius:30px;box-shadow:0 4px 16px #0003;display:grid;overflow:hidden;width:58px}.mz button{height:58px;font-size:28px;line-height:1;color:#16213e;font-weight:500}.mz button+button{border-top:1px solid #e6e9ee}
+.mlc{width:58px;height:58px;border-radius:50%;background:#fff;box-shadow:0 4px 16px #0003;display:grid;place-items:center;color:#b8892f}
+.mpa{min-height:62px;font:600 20px/1.35 Manrope,system-ui,sans-serif;color:#16213e;display:flex;align-items:center;justify-content:center;padding:0 4px 16px;border-bottom:1px solid #eef0f3;margin-bottom:16px;word-break:break-word}.mpa.ld{color:#9aa3b5;font-weight:500}
+.msheet .go{margin:0}
+.mp .leaflet-bottom{bottom:var(--sh,230px)}
+/* buyurtma xulosasi */
+.sm{margin:16px 0 4px;padding:12px 14px;border:1px solid #ffffff1c;border-radius:12px;font-size:14px;color:var(--mut);display:grid;gap:8px}.sm div{display:flex;justify-content:space-between;gap:12px}.sm div[hidden]{display:none}.sm b{color:var(--cr)}
+.dq{margin:6px 0 0;font-size:13px;line-height:1.5}.dq .bad{color:var(--r)}.dq[hidden]{display:none}
+.mnw{margin:14px 0 0;padding:12px 14px;border-radius:12px;background:#d6a84f22;color:#ecd08a;font-size:14px;line-height:1.5}.mnw b{color:#fff}
 </style>
 </head>
 <body>
@@ -311,19 +325,22 @@ body{padding-bottom:var(--dockh)}
 <section class="w about" id="about"><div class="ab" id="abox"></div><div><div class="k">Biz haqimizda</div><h2>Poytugʻdagi milliy taomlar maskani</h2><p>Marakand Poytugʻdagi milliy taomlar kafesi. Bizda osh, lagʻmon, manti, shashlik va tandirda pishgan somsa tayyorlanadi.</p><p>Buyurtmangizni saytdan bering, biz uni issiq holda eshigingizgacha yetkazamiz. Kafemizga kelib oʻtirishingiz yoki kofeni oʻzingiz bilan olib ketishingiz ham mumkin.</p>
 <div class="st" id="stt"></div></div></section>
 <footer class="ft" id="contact"><div class="w"><div class="g"><div><img src="/logo.png" alt=""><p>Milliy taomlar kafesi.<br>Poytugʻ, Andijon viloyati.</p></div><div><h3>Aloqa</h3><div id="ctc"></div></div><div><h3>Ish vaqti</h3><p id="hrs"></p></div></div><div class="cp">© Marakand cafe · Poytugʻ · Menyudagi osh surati: Wikimedia Commons</div></div></footer>
-<div class="mp" id="mp" hidden><div class="mpb"><div class="mph"><span>Yetkazish manzilini belgilang</span><button id="mpx" aria-label="Yopish">×</button></div><div class="mpe" id="mpe" hidden></div><div class="mm"><div id="mmap"></div><svg class="pin" id="pin" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill="#d6a84f" stroke="#001622" stroke-width="1.2"/><circle cx="12" cy="10" r="2.6" fill="#001622"/></svg><button class="loc" id="locb">Mening joylashuvim</button><div class="zm" id="zm" hidden><button type="button" id="zin" aria-label="Kattalashtirish">+</button><button type="button" id="zout" aria-label="Kichraytirish">−</button></div></div><div class="mpf"><div class="mpa" id="mpa">Xaritani suring, belgi manzilingizga tushsin</div><button class="go" id="mpok">Shu manzilni tanlash</button></div></div></div>
+<div class="mp" id="mp" hidden><div id="mmap"></div><svg class="pin" id="pin" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill="#d6a84f" stroke="#fff" stroke-width="1.2"/><circle cx="12" cy="10" r="2.8" fill="#fff"/></svg><div class="pinsh"></div>
+<div class="mtop"><button class="mcl" id="mpx" aria-label="Yopish"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button><div class="msr"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="msq" type="search" placeholder="Manzilni qidirish" autocomplete="off" enterkeyhint="search"><button type="button" id="msx" hidden aria-label="Tozalash">×</button></div></div>
+<div class="msg" id="msg" hidden></div>
+<div class="msheet" id="msheet"><div class="mfab"><div class="mz"><button type="button" id="zin" aria-label="Kattalashtirish">+</button><button type="button" id="zout" aria-label="Kichraytirish">−</button></div><button type="button" class="mlc" id="locb" aria-label="Mening joylashuvim"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M21 3 3 10.5l7 2.5 2.5 7z"/></svg></button></div><div class="mpa ld" id="mpa">Manzil aniqlanmoqda…</div><button class="go" id="mpok">Tasdiqlash</button></div></div>
 <div class="lb" id="lb" hidden><button class="lbx" id="lbx" aria-label="Yopish">×</button><button class="lba l" id="lbp" aria-label="Oldingi">‹</button><img id="lbi" alt=""><button class="lba r" id="lbn" aria-label="Keyingi">›</button></div>
 <div class="dock" id="dock" hidden><button class="dd" id="dd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11v9H3zM14 9h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg><span id="ddt"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button><button class="dc" id="dc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.2 11h10.6L20 8H6.2"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></svg><span id="dct"></span></button></div>
 <button class="fab" id="fab" hidden aria-label="Kategoriyalar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/></svg></button>
 <div class="sheet" id="sheet" hidden><div class="shb" id="shb"></div></div>
 <div class="pg" id="pgcat" hidden><div class="phd"><button data-back aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><b id="cattl"></b><i></i></div><div class="pgb" id="catb"><div class="gr" id="catgr"></div></div></div>
 <div class="pg" id="pgc" hidden><div class="phd"><button data-back aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><b>Savatcha</b><button id="cclr" aria-label="Savatchani tozalash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button></div><div class="pgb"><div id="lines"></div><div class="mnw" id="cmin" hidden></div><div class="cem" id="cempty" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.2 11h10.6L20 8H6.2"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></svg><br>Savatchangiz boʻsh.<br>Menyudan taom tanlang.</div></div><div class="pft"><div class="pt"><b id="ctot"></b><span>Umumiy</span></div><button class="pbn" id="cnext">Davom etish</button></div></div>
-<div class="pg" id="pgk" hidden><div class="phd"><button data-back aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><b>Buyurtma berish</b><i></i></div><div class="pgb"><div class="ckw"><div class="dl" id="dlw"><span>Yetkazish narxi</span><p id="dln"></p></div><div class="dq" id="dq"></div><label>Ismingiz</label><input class="f" id="fn" autocomplete="name" placeholder="Ismingizni kiriting">
+<div class="pg" id="pgk" hidden><div class="phd"><button data-back aria-label="Orqaga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><b>Buyurtma berish</b><i></i></div><div class="pgb"><div class="ckw"><label>Ismingiz</label><input class="f" id="fn" autocomplete="name" placeholder="Ismingizni kiriting">
 <label>Telefon raqami</label><input class="f" id="fp" type="tel" inputmode="tel" placeholder="+998 90 123 45 67" autocomplete="tel">
-<label>Yetkazish manzili</label><input class="f" id="fa" autocomplete="street-address" placeholder="Koʻcha, uy, moʻljal"><button type="button" class="mapb" id="mapb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Xaritadan joylashuvni belgilash</button><div class="locok" id="locok" hidden><span>Joylashuv xaritada belgilandi</span><button type="button" id="locx">Oʻchirish</button></div>
+<label>Yetkazish manzili</label><input class="f" id="fa" autocomplete="street-address" placeholder="Koʻcha, uy, moʻljal"><button type="button" class="mapb" id="mapb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Xaritadan joylashuvni belgilash</button><div class="locok" id="locok" hidden><span>Joylashuv xaritada belgilandi</span><button type="button" id="locx">Oʻchirish</button></div><div class="dq" id="dq" hidden></div>
 <label>Izoh (ixtiyoriy)</label><textarea id="fc" rows="2" placeholder="Masalan: achchiq boʻlmasin"></textarea><input class="hp" id="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
 <div class="pay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg><div><b>Toʻlov: naqd pul</b><small>Taomni olganingizda kuryerga toʻlaysiz</small></div></div>
-<div class="er" id="er"></div></div></div><div class="pft"><div class="pt"><b id="tot"></b><span id="totl">Jami</span></div><button class="go" id="go">Buyurtma berish</button></div></div>
+<div class="er" id="er"></div><div class="sm" id="sm"><div><span>Taomlar</span><b id="smf"></b></div><div id="smd" hidden><span id="smdl">Yetkazish</span><b id="smdv"></b></div></div></div></div><div class="pft"><div class="pt"><b id="tot"></b><span id="totl">Jami</span></div><button class="go" id="go">Buyurtma berish</button></div></div>
 <div class="pg" id="pgd" hidden><div class="phd"><i></i><b>Buyurtma</b><button data-back aria-label="Yopish"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div class="pgb"><div class="ok" id="ok"></div></div></div>
 <button class="trk" id="trk" hidden></button>
 <div class="ax" id="ax" hidden><div class="axh"><b>Profil</b><button id="axx" aria-label="Yopish">×</button></div><div class="axb" id="axb"></div></div>
@@ -470,19 +487,11 @@ $('fp').onfocus=()=>{if(!$('fp').value)$('fp').value=lastPh='+998 '};
 async function refreshCfg(){if(Date.now()-cfgT<15000)return;cfgT=Date.now();try{const r=await fetch('/api/cfg',{cache:'no-store'});if(r.ok){Object.assign(CFG,await r.json());drawCart()}}catch(e){}}
 function drawCk(){
   const sb=tot(),on=!!CFG.delOn,ok=on&&Q.ok,fee=ok?Q.fee:0;
-  $('dlw').hidden=!on;$('dq').hidden=!on;$('tot').textContent=fmt(sb+fee);$('totl').textContent=on&&!ok?'Yetkazishsiz':'Jami';$('go').disabled=on&&!!Q.busy;
-  if(!on)return;
-  $('dln').innerHTML=`1 km gacha <b>${fmt(CFG.delFirst)}</b><br>keyingi har km <b>${fmt(CFG.delKm)}</b>`;
-  let t='';
-  if(Q.busy)t='Yetkazish narxi hisoblanmoqda…';
-  else if(Q.err)t=`<span class="bad">${esc(Q.err)}</span>`;
-  else if(Q.ok){
-    t=`Masofa: <b>${Q.km} km</b> · Yetkazish: <b>${fmt(Q.fee)}</b>`;
-    t+=Q.src==='pin'?'<br>Narx xaritada belgilangan nuqta boʻyicha hisoblandi.':(Q.found?`<br>Topilgan joy: ${esc(tr(Q.found))}`:'');
-    if(Q.apx)t+='<br><span class="wn">Manzil taxminiy aniqlandi. Aniq narx uchun «Xaritadan joylashuvni belgilash» tugmasini bosib, joyni tekshiring.</span>';
-    if(Q.est)t+='<br><span class="wn">Masofa taxminiy hisoblandi.</span>';
-  }else t='Manzilni yozing yoki xaritadan belgilang. Yetkazish narxi avtomatik hisoblanadi.';
-  $('dq').innerHTML=t;
+  $('tot').textContent=fmt(sb+fee);$('totl').textContent=on&&!ok?'Yetkazishsiz':'Jami';$('go').disabled=on&&!!Q.busy;
+  $('smf').textContent=fmt(sb);
+  $('smd').hidden=!on||(!ok&&!Q.busy);
+  if(on){$('smdl').textContent='Yetkazish'+(ok?` (${Q.km} km)`:'');$('smdv').textContent=Q.busy?'hisoblanmoqda…':ok?fmt(Q.fee):''}
+  $('dq').hidden=!(on&&Q.err);$('dq').innerHTML=Q.err?`<span class="bad">${esc(Q.err)}</span>`:'';
 }
 function quoteSoon(ms){
   clearTimeout(qT);const my=++qSeq;
@@ -520,8 +529,7 @@ function mkLeaflet(){
   const m=L.map('mmap',{zoomControl:false}).setView([CFG.lat,CFG.lng],16);
   const T=CFG.maptilerKey?{u:'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key='+CFG.maptilerKey,a:'© MapTiler © OpenStreetMap',s:'abc'}:{u:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',a:'© OpenStreetMap',s:'abc'};
   let terr=0;const tl=L.tileLayer(T.u,{maxZoom:19,subdomains:T.s,attribution:T.a});tl.on('tileerror',()=>{if(++terr===4)$('mpa').textContent='Xarita rasmlari yuklanmadi. Nuqtani belgilab, manzilni qoʻlda yozishingiz mumkin.'});tl.addTo(m);
-  L.control.zoom({position:'topright'}).addTo(m);
-  return {center:()=>{const c=m.getCenter();return{lat:c.lat,lng:c.lng}},set:(a,b,z)=>m.setView([a,b],z||17),start:f=>m.on('movestart',f),end:f=>m.on('moveend',f),resize:()=>m.invalidateSize()};
+  return {center:()=>{const c=m.getCenter();return{lat:c.lat,lng:c.lng}},set:(a,b,z)=>m.setView([a,b],z||17),start:f=>m.on('movestart',f),end:f=>m.on('moveend',f),resize:()=>m.invalidateSize(),zoom:d=>m.setZoom(m.getZoom()+d)};
 }
 function mkYandex(){
   const{YMap,YMapDefaultSchemeLayer,YMapDefaultFeaturesLayer,YMapListener}=ymaps3;
@@ -529,39 +537,64 @@ function mkYandex(){
   const map=new YMap($('mmap'),{location:{center:ctr,zoom:z}});
   map.addChild(new YMapDefaultSchemeLayer());map.addChild(new YMapDefaultFeaturesLayer());
   map.addChild(new YMapListener({layer:'any',onUpdate:({location,mapInAction})=>{ctr=location.center;z=location.zoom;if(mapInAction){if(!was){was=true;cbS()}}else{was=false;cbE()}}}));
-  $('zin').onclick=()=>map.update({location:{zoom:Math.min(19,z+1),duration:200}});$('zout').onclick=()=>map.update({location:{zoom:Math.max(3,z-1),duration:200}});
-  return {center:()=>({lat:ctr[1],lng:ctr[0]}),set:(a,b,zz)=>map.update({location:{center:[b,a],zoom:zz||17}}),start:f=>{cbS=f},end:f=>{cbE=f},resize:()=>{}};
+  return {center:()=>({lat:ctr[1],lng:ctr[0]}),set:(a,b,zz)=>map.update({location:{center:[b,a],zoom:zz||17}}),start:f=>{cbS=f},end:f=>{cbE=f},resize:()=>{},zoom:d=>map.update({location:{zoom:Math.max(3,Math.min(19,z+d)),duration:200}})};
 }
 // koordinata boʻyicha manzil: server Yandex geokoderidan soʻraydi (kalit boʻlmasa OpenStreetMap)
 async function addrOf(c){
   const r=await fetch('/api/rev',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({lat:c.lat,lng:c.lng})}),d=await r.json();
   return tr(d.addr||'');
 }
+function fitSheet(){$('mp').style.setProperty('--sh',$('msheet').offsetHeight+'px')}
+function setA(t,ld){const a=$('mpa');a.textContent=t;a.classList.toggle('ld',!!ld);fitSheet()}
 function rev(){
-  clearTimeout(rt);const c=MX.center();cur={lat:c.lat,lng:c.lng,addr:''};$('mpa').textContent='Manzil aniqlanmoqda…';
+  clearTimeout(rt);const c=MX.center();cur={lat:c.lat,lng:c.lng,addr:''};setA('Manzil aniqlanmoqda…',1);
   rt=setTimeout(async()=>{
     let a='';try{a=await addrOf(c)}catch(e){}
-    if(cur&&cur.lat===c.lat&&cur.lng===c.lng){cur.addr=a;$('mpa').textContent=a||'Nuqta tanlandi. Manzil nomini oʻzingiz yozing.'}
-  },600);
+    if(cur&&cur.lat===c.lat&&cur.lng===c.lng){cur.addr=a;setA(a||'Nuqta tanlandi',!a)}
+  },450);
 }
 function locate(){
-  if(!navigator.geolocation){$('mpa').textContent='Brauzer joylashuvni aniqlay olmaydi';return}
-  $('mpa').textContent='Joylashuvingiz aniqlanmoqda…';
-  navigator.geolocation.getCurrentPosition(p=>MX.set(p.coords.latitude,p.coords.longitude,17),()=>{$('mpa').textContent='Joylashuvga ruxsat berilmadi. Xaritani surib belgilang.'},{enableHighAccuracy:true,timeout:12000});
+  if(!navigator.geolocation){setA('Brauzer joylashuvni aniqlay olmaydi');return}
+  setA('Joylashuvingiz aniqlanmoqda…',1);
+  navigator.geolocation.getCurrentPosition(p=>MX.set(p.coords.latitude,p.coords.longitude,17),()=>setA('Joylashuvga ruxsat berilmadi. Xaritani surib belgilang.'),{enableHighAccuracy:true,timeout:12000});
 }
 async function openMap(){
-  $('mp').hidden=false;
-  const yFail=e=>{console.error('Yandex xarita yuklanmadi:',e,CSPV);const m=$('mpe');m.hidden=false;m.textContent='Yandex xarita yuklanmadi ('+((e&&e.message)||e)+(CSPV.length?'; CSP: '+CSPV.slice(0,3).join(' | '):'')+'). Vaqtincha OpenStreetMap xaritasi ishlatilmoqda.';useY=false;mapP=null};
+  $('mp').hidden=false;fitSheet();
+  const yFail=e=>{console.error('Yandex xarita yuklanmadi:',e,CSPV);try{fetch('/api/maplog',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({e:String((e&&e.message)||e),csp:CSPV.slice(0,3).join(' | ')})})}catch(x){}useY=false;mapP=null};
   try{await loadMapLib()}catch(e){
     if(useY){yFail(e);return openMap()}
-    $('mpa').textContent='Xarita yuklanmadi. Manzilni qoʻlda yozing.';return;
+    setA('Xarita yuklanmadi. Manzilni qoʻlda yozing.');return;
   }
-  $('zm').hidden=!useY;
-  if(!MX){try{MX=useY?mkYandex():mkLeaflet()}catch(e){if(useY){yFail(e);return openMap()}throw e}MX.start(()=>$('pin').classList.add('up'));MX.end(()=>{$('pin').classList.remove('up');rev()})}
+  if(!MX){
+    try{MX=useY?mkYandex():mkLeaflet()}catch(e){if(useY){yFail(e);return openMap()}throw e}
+    MX.start(()=>{$('pin').classList.add('up');$('msg').hidden=true;$('msq').blur()});MX.end(()=>{$('pin').classList.remove('up');rev()});
+    $('zin').onclick=()=>MX.zoom(1);$('zout').onclick=()=>MX.zoom(-1);
+  }
   // nuqta boʻlsa — shu nuqta; yozilgan manzil topilgan boʻlsa — oʻsha joy (tekshirish uchun); aks holda mijoz joylashuvi
   setTimeout(()=>{MX.resize();if(pick)MX.set(pick.lat,pick.lng,17);else if(Q.ok&&Q.src==='addr')MX.set(Q.lat,Q.lng,17);else if(!MX.loc){MX.loc=1;locate()}},80);
 }
-$('mapb').onclick=openMap;$('mpx').onclick=()=>{$('mp').hidden=true};$('locb').onclick=()=>MX&&locate();
+/* manzil qidirish */
+let sT=0,sSeq=0;
+function sFill(list,q){
+  const b=$('msg');b.hidden=false;
+  b.innerHTML=list.length?list.map((x,i)=>`<button type="button" data-i="${i}">${esc(tr(x.t))}</button>`).join(''):`<div class="ms-e">“${esc(q)}” boʻyicha hech narsa topilmadi</div>`;
+  b._l=list;
+}
+$('msq').addEventListener('input',()=>{
+  const q=$('msq').value.trim();$('msx').hidden=!q;clearTimeout(sT);
+  if(q.length<2){$('msg').hidden=true;return}
+  const my=++sSeq;
+  sT=setTimeout(async()=>{
+    try{const r=await fetch('/api/suggest',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({q})}),d=await r.json();if(my===sSeq&&r.ok)sFill(d.list||[],q)}catch(e){}
+  },400);
+});
+$('msq').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const b=$('msg').querySelector('button');if(b)b.click()}});
+$('msg').addEventListener('click',e=>{
+  const t=e.target.closest('button[data-i]');if(!t)return;const x=$('msg')._l[+t.dataset.i];if(!x||!MX)return;
+  $('msg').hidden=true;$('msq').value=tr(x.t);$('msq').blur();MX.set(x.lat,x.lng,17);
+});
+$('msx').onclick=()=>{$('msq').value='';$('msx').hidden=true;$('msg').hidden=true;$('msq').focus()};
+$('mapb').onclick=openMap;$('mapb').onclick=openMap;$('mpx').onclick=()=>{$('mp').hidden=true};$('locb').onclick=()=>MX&&locate();
 $('mpok').onclick=()=>{if(!cur)return;pick={lat:cur.lat,lng:cur.lng};if(cur.addr)$('fa').value=cur.addr;$('locok').hidden=false;$('mp').hidden=true;quoteSoon(0)};
 $('locx').onclick=()=>{pick=null;$('locok').hidden=true;quoteSoon(0)};
 function done(o,id){
