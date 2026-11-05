@@ -160,7 +160,7 @@ const setV=()=>{const g=D.tg,s=D.settings||{},ok=(c,t)=>`<span class="bd ${c?'s3
 <div class="box"><b>Yandex Xaritalar</b> ${ok(D.ymap,D.ymap?'Ulangan':'Ulanmagan')}<div class="hint" style="margin:6px 0 10px">Mijoz joyini xaritadan belgilashi va qoʻlda yozgan manzili aniq topilishi uchun Yandex kaliti kerak. Kalit boʻlmasa oddiy OpenStreetMap xaritasi ishlatiladi (Poytugʻ uchun u kamroq aniq).</div>
 <label class="l">Xarita kaliti (JavaScript API)</label><input data-p="settings.yandexKey" value="${esc(s.yandexKey)}" placeholder="kalit" autocomplete="off">
 <label class="l" style="margin-top:8px">Geokoder kaliti (HTTP Геокодер). Boʻsh qolsa yuqoridagi kalit ishlatiladi</label><input data-p="settings.yandexGeoKey" value="${esc(s.yandexGeoKey)}" placeholder="boʻsh qoldirsa boʻladi" autocomplete="off">
-<div style="margin-top:12px"><button class="btn p" data-a="setsave">Saqlash</button></div>
+<div style="margin-top:12px"><button class="btn p" data-a="setsave">Saqlash</button> <button class="btn" data-a="ytest">Kalitlarni tekshirish</button></div><div id="ytr" class="hint" style="margin-top:8px;line-height:1.6"></div>
 <details class="how"><summary>Kalitni qanday olaman?</summary><ol><li><b>developer.tech.yandex.ru</b> ga Yandex hisobingiz bilan kiring.</li><li>Kabinetda <b>JavaScript API</b> va <b>HTTP Геокодер</b> uchun kalit yarating (ular bitta kalit yoki ikkita alohida kalit boʻlishi mumkin: ikkinchi holda geokoder kalitini pastdagi maydonga yozing).</li><li>Kalitni oʻgʻirlanishdan himoya qilish uchun sayt manzilingiz (masalan <b>https://sizning-nom.onrender.com</b>) boʻyicha cheklov qoʻying.</li><li>Kalitlarni shu yerga qoʻyib «Saqlash» ni bosing va saytni yangilang. Yuqoridagi «Narxni sinab koʻrish» bilan tekshiring.</li></ol></details></div>
 <div class="box"><b>Telegram bot</b><div class="hint" style="margin:6px 0 10px">Buyurtmalar guruhlarga tushishi va mijozlar Telegram ichida buyurtma berishi uchun.</div>
 <div class="r" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">${ok(g.on,g.on?'Bot ulangan'+(g.bot?' (@'+esc(g.bot)+')':''):'Bot ulanmagan')}${ok(g.courier,g.courier?'Kuryerlar guruhi ulangan':'Kuryerlar guruhi ulanmagan')}${ok(g.app,g.app?'Mini App tugmasi ulangan':'Mini App tugmasi ulanmagan')}</div>
@@ -313,6 +313,11 @@ document.addEventListener('click',e=>{
     else if(a==='gdel'){if(confirm('Rasm oʻchirilsinmi?')){D.gallery.splice(i,1);const r=await api('/api/admin/gallery',{gallery:D.gallery});D.gallery=r.gallery;view();toast('Oʻchirildi')}}
     else if(a==='gl'||a==='gr'){const j=a==='gl'?i-1:i+1;[D.gallery[i],D.gallery[j]]=[D.gallery[j],D.gallery[i]];const r=await api('/api/admin/gallery',{gallery:D.gallery});D.gallery=r.gallery;view()}
     else if(a==='gsave'){const r=await api('/api/admin/gallery',{gallery:D.gallery});D.gallery=r.gallery;toast('Saqlandi')}
+    else if(a==='ytest'){
+      $('ytr').textContent='Tekshirilmoqda…';const r=await api('/api/admin/ytest',{});
+      const f=(n,x)=>`<div>${n}: <b style="color:${x.ok?'#6fd68b':'#ff8a8a'}">${x.ok?'ishlayapti':'xato'}</b> (${x.status||'ulanmadi'})${x.msg?' — '+esc(x.msg):''}</div>`;
+      $('ytr').innerHTML=f('Geokoder kaliti',r.geo)+f('Xarita kaliti',r.js)+(r.map?`<div>Brauzerdagi oxirgi xarita xatosi: <b>${esc(r.map.e)}</b>${r.map.csp?' · CSP: '+esc(r.map.csp):''}</div>`:'<div>Brauzerda xarita xatosi qayd etilmagan.</div>');
+    }
     else if(a==='qtest'){
       const q=$('qa').value.trim();if(!q)throw new Error('Sinash uchun manzilni yozing');$('qtr').textContent='Hisoblanmoqda…';
       try{const r=await api('/api/quote',{addr:q});$('qtr').innerHTML=r.on===0?'Yetkazish narxi oʻchirilgan (yuqoridagi katakcha).':`Topilgan joy: <b>${esc(r.found||'—')}</b><br>Masofa: <b>${r.km} km</b> · Yetkazish narxi: <b>${fmt(r.fee)}</b>${r.apx?'<br><span style="color:var(--y)">Manzil taxminiy aniqlandi (aniq uy topilmadi)</span>':''}${r.est?'<br><span style="color:var(--y)">Masofa taxminiy: yoʻl xizmati javob bermadi</span>':''}`}
