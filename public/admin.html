@@ -114,7 +114,7 @@ const tl=o=>(o.log||[]).filter(e=>LGN[e.k]).map(e=>`<div class="tl"><span>${LGN[
 const ordV=(arch)=>[...D.orders].filter(o=>arch?o.st>=3:o.st<3).reverse().map(o=>`<div class="box ${o.st===0?'n0':''}"><div class="r"><b>#${o.id}</b><span class="bd">${new Date(o.t).toLocaleString('ru-RU')}</span></div>
 <p style="margin:6px 0"><b>${esc(o.name)}</b> · <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a>${o.uid?` · <a href="tg://user?id=${+o.uid}">Telegram</a>`:''}<br>${esc(o.addr)}${o.lat!=null?` · <a href="https://yandex.uz/maps/?pt=${+o.lng},${+o.lat}&z=17&l=map" target="_blank" rel="noopener">Xaritada ochish</a>`:''}${o.note?`<br><i>${esc(o.note)}</i>`:''}</p>
 ${o.items.map(i=>`<div class="r"><span>${esc(i.n)} × ${i.q}</span><span>${fmt(i.p*i.q)}</span></div>`).join('')}
-${o.fee?`<div class="r"><span>Yetkazish${o.km?' ('+o.km+' km)':''}</span><span>${fmt(o.fee)}</span></div>`:''}<div class="r" style="margin:8px 0"><b>Jami · ${esc(o.pay)}</b><b>${fmt(o.total)}</b></div>
+${o.fee?`<div class="r"><span>Yetkazish${o.km?' ('+o.km+' km)':''}${o.es||o.ax?' · taxminiy':''}</span><span>${fmt(o.fee)}</span></div>`:''}<div class="r" style="margin:8px 0"><b>Jami · ${esc(o.pay)}</b><b>${fmt(o.total)}</b></div>
 <div class="r"><span>${D.tg.on?`<span class="bd s${o.st}">${lab(o)}</span>`:`<select data-s="${o.id}" style="max-width:220px">${ST.map((s,k)=>`<option value="${k}" ${k===o.st?'selected':''}>${s}</option>`).join('')}</select>`}</span>
 ${o.tg===false?`<span><span class="bd bad">Telegramga yuborilmadi</span> <button class="btn" data-a="resend" data-i="${o.id}">Qayta yuborish</button></span>`:o.tg?'<span class="bd">Telegramga yuborildi</span>':''}</div>${tl(o)}</div>`).join('')||'<div class="box">Hozircha buyurtma yoʻq.</div>';
 const phs=(img,p,a)=>`<div class="ph ${a||''}" data-a="img" data-p="${p}">${img?`<img src="${esc(img)}" alt=""><button class="x" data-a="imgx" data-p="${p}" title="Olib tashlash">×</button>`:'Rasm<br>qoʻshish'}</div>`;
@@ -145,14 +145,23 @@ const setV=()=>{const g=D.tg,s=D.settings||{},ok=(c,t)=>`<span class="bd ${c?'s3
 <div><label class="l">Reyting yozuvi (ixtiyoriy)</label><input data-p="settings.rating" value="${esc(s.rating)}" placeholder="4.2 · Yandex Xaritalar"></div>
 <div class="f2"><div><label class="l">Telegram havolasi (ixtiyoriy)</label><input data-p="settings.telegram" value="${esc(s.telegram)}" placeholder="https://t.me/..."></div><div><label class="l">Instagram havolasi (ixtiyoriy)</label><input data-p="settings.instagram" value="${esc(s.instagram)}" placeholder="https://instagram.com/..."></div></div></div>
 <div style="margin-top:12px"><button class="btn p" data-a="setsave">Saqlash</button></div></div>
-<div class="box"><b>Yetkazish narxi</b><div class="hint" style="margin:3px 0 12px">Bu narxlar saytdagi savatda mijozga koʻrsatiladi. Sayt yetkazish narxini oʻzi hisoblamaydi.</div><div class="f">
-<div class="f2"><div><label class="l">Birinchi 1 km uchun (soʻm)</label><input type="number" inputmode="numeric" data-p="settings.delFirst" value="${s.delFirst}"></div><div><label class="l">Keyingi har bir km uchun (soʻm)</label><input type="number" inputmode="numeric" data-p="settings.delKm" value="${s.delKm}"></div></div></div>
-<div class="hint" style="margin-top:10px">Mijoz savatda shunday koʻradi: <b>1 km gacha ${fmt(s.delFirst)}, keyingi har km ${fmt(s.delKm)}</b>.</div>
-<div style="margin-top:12px"><button class="btn p" data-a="setsave">Saqlash</button></div></div>
-<div class="box"><b>Google xarita</b> ${ok(D.gmap,D.gmap?'Ulangan':'Ulanmagan')}<div class="hint" style="margin:6px 0 10px">Mijoz xaritadan joyini belgilaganda koʻcha va uy raqami aniq chiqishi uchun Google xarita kaliti kerak.</div>
-<label class="l">Google xarita kaliti</label><input data-p="settings.googleKey" value="${esc(s.googleKey)}" placeholder="AIza..." autocomplete="off">
+<div class="box"><b>Yetkazish narxi</b><div class="hint" style="margin:3px 0 12px">Narx kafedan mijoz manzilgacha <b>yoʻl masofasi</b> boʻyicha avtomatik hisoblanadi: birinchi 1 km uchun bir narx, undan keyingi har bir boshlangan km uchun boshqa narx. Mijoz manzilni xaritadan belgilasa ham, qoʻlda yozsa ham narx chiqadi.</div>
+<label class="chk" style="margin-bottom:12px"><input type="checkbox" data-p="settings.delOn" ${s.delOn?'checked':''}> Yetkazish narxini avtomatik hisoblash (oʻchirilsa, narx qoʻshilmaydi va mijozga koʻrsatilmaydi)</label>
+<div class="f"><div class="f2"><div><label class="l">Birinchi 1 km uchun (soʻm)</label><input type="number" inputmode="numeric" data-p="settings.delFirst" value="${s.delFirst}"></div><div><label class="l">Keyingi har bir km uchun (soʻm)</label><input type="number" inputmode="numeric" data-p="settings.delKm" value="${s.delKm}"></div></div>
+<div class="f2"><div><label class="l">Kafe joylashuvi: kenglik (lat)</label><input type="number" step="any" data-p="settings.lat" value="${s.lat}"></div><div><label class="l">Kafe joylashuvi: uzunlik (lng)</label><input type="number" step="any" data-p="settings.lng" value="${s.lng}"></div></div></div>
+<div class="hint" style="margin-top:8px">Masofa shu nuqtadan boshlab hisoblanadi. Yandex Xaritalarda kafe joyini oching, xaritaning aynan oʻsha nuqtasiga oʻng tugma bosib koordinatalarni nusxalang (masalan <b>40.892109, 72.252442</b>).</div>
 <div style="margin-top:12px"><button class="btn p" data-a="setsave">Saqlash</button></div>
-<details class="how"><summary>Kalitni qanday olaman?</summary><ol><li><b>console.cloud.google.com</b> ga kiring va yangi loyiha yarating.</li><li>«APIs &amp; Services» → «Library» da <b>Maps JavaScript API</b> va <b>Geocoding API</b> ni yoqing (Enable).</li><li>«Credentials» → «Create credentials» → <b>API key</b>. Chiqqan kalitni nusxalab, yuqoriga qoʻying.</li><li>Kalitni oʻgʻirlanishdan himoya qiling: «Application restrictions» → «Websites» → sayt manzilingizni yozing (masalan <b>https://sizning-nom.onrender.com/*</b>).</li><li>Google toʻlov kartasini (billing) ulashni soʻraydi. Kichik kafe uchun oylik bepul limit odatda yetadi, narxlarni Google sahifasidan tekshirib oling.</li><li>Saqlang va saytni yangilang.</li></ol></details></div>
+<div class="hint" style="margin:16px 0 6px"><b>Sinab koʻrish.</b> Manzil yozing: sayt shu manzilni qanday topishi, masofa va narxni koʻrasiz (avval «Saqlash» ni bosing).</div>
+<div class="r" style="gap:8px;flex-wrap:wrap;justify-content:flex-start"><input id="qa" placeholder="Masalan: Alisher Navoiy koʻchasi 25" style="flex:1;min-width:220px"><button class="btn" data-a="qtest">Narxni sinab koʻrish</button></div><div id="qtr" class="hint" style="margin-top:8px"></div></div>
+<div class="box"><b>Minimal buyurtma</b><div class="hint" style="margin:3px 0 12px">Yoqilsa, savatdagi taomlar summasi shu miqdordan kam boʻlsa mijoz buyurtma bera olmaydi va yana qancha qoʻshish kerakligi koʻrsatiladi (yetkazish narxi hisobga olinmaydi). Oʻchirilsa, cheklov yoʻq.</div>
+<label class="chk" style="margin-bottom:12px"><input type="checkbox" data-p="settings.minOn" ${s.minOn?'checked':''}> Minimal buyurtma summasini yoqish</label>
+<div><label class="l">Minimal summa (soʻm)</label><input type="number" inputmode="numeric" data-p="settings.minSum" value="${s.minSum}"></div>
+<div style="margin-top:12px"><button class="btn p" data-a="setsave">Saqlash</button></div></div>
+<div class="box"><b>Yandex Xaritalar</b> ${ok(D.ymap,D.ymap?'Ulangan':'Ulanmagan')}<div class="hint" style="margin:6px 0 10px">Mijoz joyini xaritadan belgilashi va qoʻlda yozgan manzili aniq topilishi uchun Yandex kaliti kerak. Kalit boʻlmasa oddiy OpenStreetMap xaritasi ishlatiladi (Poytugʻ uchun u kamroq aniq).</div>
+<label class="l">Xarita kaliti (JavaScript API)</label><input data-p="settings.yandexKey" value="${esc(s.yandexKey)}" placeholder="kalit" autocomplete="off">
+<label class="l" style="margin-top:8px">Geokoder kaliti (HTTP Геокодер). Boʻsh qolsa yuqoridagi kalit ishlatiladi</label><input data-p="settings.yandexGeoKey" value="${esc(s.yandexGeoKey)}" placeholder="boʻsh qoldirsa boʻladi" autocomplete="off">
+<div style="margin-top:12px"><button class="btn p" data-a="setsave">Saqlash</button></div>
+<details class="how"><summary>Kalitni qanday olaman?</summary><ol><li><b>developer.tech.yandex.ru</b> ga Yandex hisobingiz bilan kiring.</li><li>Kabinetda <b>JavaScript API</b> va <b>HTTP Геокодер</b> uchun kalit yarating (ular bitta kalit yoki ikkita alohida kalit boʻlishi mumkin: ikkinchi holda geokoder kalitini pastdagi maydonga yozing).</li><li>Kalitni oʻgʻirlanishdan himoya qilish uchun sayt manzilingiz (masalan <b>https://sizning-nom.onrender.com</b>) boʻyicha cheklov qoʻying.</li><li>Kalitlarni shu yerga qoʻyib «Saqlash» ni bosing va saytni yangilang. Yuqoridagi «Narxni sinab koʻrish» bilan tekshiring.</li></ol></details></div>
 <div class="box"><b>Telegram bot</b><div class="hint" style="margin:6px 0 10px">Buyurtmalar guruhlarga tushishi va mijozlar Telegram ichida buyurtma berishi uchun.</div>
 <div class="r" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">${ok(g.on,g.on?'Bot ulangan'+(g.bot?' (@'+esc(g.bot)+')':''):'Bot ulanmagan')}${ok(g.courier,g.courier?'Kuryerlar guruhi ulangan':'Kuryerlar guruhi ulanmagan')}${ok(g.app,g.app?'Mini App tugmasi ulangan':'Mini App tugmasi ulanmagan')}</div>
 <div style="margin-top:12px"><button class="btn p" data-a="tgtest">Test xabar yuborish</button></div><div id="tgr" style="margin-top:10px"></div>
@@ -291,7 +300,7 @@ document.addEventListener('click',e=>{
     else if(a==='bccancel'){await api('/api/admin/bc/cancel',{});toast('Toʻxtatilmoqda');bcLoad()}
     else if(a==='osub'){SUB.orders=t.dataset.i;view()}
     else if(a==='ssub'){SUB.site=t.dataset.i;view()}
-    else if(a==='setsave'){const r=await api('/api/admin/settings',{settings:D.settings});D.settings=r.settings;D.gmap=r.gmap;view();toast('Saqlandi')}
+    else if(a==='setsave'){const r=await api('/api/admin/settings',{settings:D.settings});D.settings=r.settings;D.ymap=r.ymap;view();toast('Saqlandi')}
     else if(a==='sadd'){D.slides.push({id:Date.now(),a:1,k:'',h:'Yangi *slayd*',p:'',b:'Menyuni koʻrish',l:'#menu',i1:'',i2:'',ic:'',bt:'',bs:''});view()}
     else if(a==='sdel'){if(confirm('Slayd oʻchirilsinmi?')){D.slides.splice(i,1);view()}}
     else if(a==='sup'||a==='sdn'){const j=a==='sup'?i-1:i+1;[D.slides[i],D.slides[j]]=[D.slides[j],D.slides[i]];view()}
@@ -304,6 +313,11 @@ document.addEventListener('click',e=>{
     else if(a==='gdel'){if(confirm('Rasm oʻchirilsinmi?')){D.gallery.splice(i,1);const r=await api('/api/admin/gallery',{gallery:D.gallery});D.gallery=r.gallery;view();toast('Oʻchirildi')}}
     else if(a==='gl'||a==='gr'){const j=a==='gl'?i-1:i+1;[D.gallery[i],D.gallery[j]]=[D.gallery[j],D.gallery[i]];const r=await api('/api/admin/gallery',{gallery:D.gallery});D.gallery=r.gallery;view()}
     else if(a==='gsave'){const r=await api('/api/admin/gallery',{gallery:D.gallery});D.gallery=r.gallery;toast('Saqlandi')}
+    else if(a==='qtest'){
+      const q=$('qa').value.trim();if(!q)throw new Error('Sinash uchun manzilni yozing');$('qtr').textContent='Hisoblanmoqda…';
+      try{const r=await api('/api/quote',{addr:q});$('qtr').innerHTML=r.on===0?'Yetkazish narxi oʻchirilgan (yuqoridagi katakcha).':`Topilgan joy: <b>${esc(r.found||'—')}</b><br>Masofa: <b>${r.km} km</b> · Yetkazish narxi: <b>${fmt(r.fee)}</b>${r.apx?'<br><span style="color:var(--y)">Manzil taxminiy aniqlandi (aniq uy topilmadi)</span>':''}${r.est?'<br><span style="color:var(--y)">Masofa taxminiy: yoʻl xizmati javob bermadi</span>':''}`}
+      catch(er){$('qtr').innerHTML='<span style="color:var(--r)">'+esc(er.message)+'</span>'}
+    }
     else if(a==='tgtest'){$('tgr').textContent='Yuborilmoqda…';const r=await api('/api/admin/telegram-test',{});$('tgr').innerHTML=r.ok?`<span class="bd s3">Muvaffaqiyatli: ${esc(r.bot)}</span><div class="hint">${(r.chats||[]).map(esc).join('<br>')}</div>`:`<span class="bd bad">Xato: ${esc(r.error)}</span>`}
   });
 });
