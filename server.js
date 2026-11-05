@@ -45,7 +45,7 @@ const feeOf=(km,c)=>c.delOn?c.delFirst+Math.ceil(Math.max(0,km-1))*c.delKm:0;
 const minErr=(sub,c)=>c.minOn&&c.minSum>0&&sub<c.minSum?`Minimal buyurtma summasi ${fmtN(c.minSum)} soʻm. Yana ${fmtN(c.minSum-sub)} soʻm qoʻshing`:'';
 const ptOf=b=>{const la=b.lat==null||b.lat===''?NaN:+b.lat,lo=b.lng==null||b.lng===''?NaN:+b.lng;return Number.isFinite(la)&&Number.isFinite(lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180?{lat:la,lng:lo}:null};
 const yKey=c=>c.yandexGeoKey||c.yandexKey||cl(E.YANDEX_GEO_KEY,80).replace(/[^\w-]/g,'')||cl(E.YANDEX_MAPS_KEY,80).replace(/[^\w-]/g,'');
-let SITE=(E.SITE_URL||'').replace(/\/+$/,'');const BUILD='2026-11-05-d';
+let SITE=(E.SITE_URL||'').replace(/\/+$/,'');const BUILD='2026-11-05-e';
 const yh=url=>SITE&&/yandex/.test(String(url))?{referer:SITE+'/',origin:SITE}:{};
 async function getJson(url,ms=6000){const r=await fetch(url,{signal:AbortSignal.timeout(ms),headers:{'user-agent':UA,'accept-language':'uz,ru',...yh(url)}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
 const GC=new Map(),RC=new Map(),memo=(m,k,v)=>{m.set(k,v);if(m.size>500)m.delete(m.keys().next().value);return v};
@@ -138,11 +138,12 @@ async function roadKm(la,lo,c){
   return{km:air*1.3,est:1,air};
 }
 // Yetkazish narxi: xaritadan belgilangan nuqta (lat/lng) boʻlsa — shu nuqta, boʻlmasa — yozilgan manzil geokodlanadi
-async function quote(b){
+async function quote(b,allowAddr){
   const c=cfgFull();if(!c.delOn)return{on:0,fee:0,km:0};
   let p=ptOf(b),src='pin',found='',apx=0;
   if(!p){
-    const addr=cl(b.addr,200);if(addr.length<3)throw new Error('Yetkazish manzilini yozing yoki xaritadan belgilang');
+    if(!allowAddr)throw new Error('Yetkazish manzilini xaritadan tanlang');
+    const addr=cl(b.addr,200);if(addr.length<3)throw new Error('Manzil yoki koordinata kiriting');
     const g=await geocode(addr,c);if(!g)throw new Error('Manzil topilmadi. Xaritadan joyingizni belgilang');
     p={lat:g.lat,lng:g.lng};src='addr';found=g.text;apx=g.apx?1:0;
   }
@@ -529,12 +530,12 @@ const server=http.createServer(async(req,res)=>{try{
     if(L.length>=6)return send(res,429,{error:'Juda koʻp buyurtma. Birozdan keyin urinib koʻring'});
     const items=[];let total=0;
     for(const it of Array.isArray(b.items)?b.items.slice(0,40):[]){const m=db.menu.find(x=>x.id===it.id&&x.a),q=Math.floor(+it.q);if(m&&q>=1&&q<=50){items.push({n:m.n,q,p:m.p});total+=m.p*q}}
-    const name=cl(b.name,60),addr=cl(b.addr,200),pd=String(b.phone||'').replace(/\D/g,''),nd=pd.startsWith('998')?pd.slice(3):pd.replace(/^0+/,''),phone=nd.length===9?`+998 ${nd.slice(0,2)} ${nd.slice(2,5)} ${nd.slice(5,7)} ${nd.slice(7)}`:'';
+    const name=cl(b.name,60),addr=cl(b.addr,260)||'Xaritada belgilangan nuqta',pd=String(b.phone||'').replace(/\D/g,''),nd=pd.startsWith('998')?pd.slice(3):pd.replace(/^0+/,''),phone=nd.length===9?`+998 ${nd.slice(0,2)} ${nd.slice(2,5)} ${nd.slice(5,7)} ${nd.slice(7)}`:'';
     if(!items.length)return send(res,400,{error:'Savat boʻsh yoki taomlar mavjud emas'});
     if(!name)return send(res,400,{error:'Ismingizni kiriting'});
     if(!phone)return send(res,400,{error:'Telefon raqamini toʻliq kiriting: +998 XX XXX XX XX'});
-    if(!addr)return send(res,400,{error:'Yetkazish manzilini kiriting'});
     const la=b.lat==null||b.lat===''?NaN:+b.lat,lo=b.lng==null||b.lng===''?NaN:+b.lng,geo=Number.isFinite(la)&&Number.isFinite(lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180;
+    if(!geo)return send(res,400,{error:'Yetkazish manzilini xaritadan tanlang'});
     const cf=cfgFull(),me=minErr(total,cf);if(me)return send(res,400,{error:me});
     let dq={fee:0,km:0};if(cf.delOn){try{dq=await quote(b)}catch(e){return send(res,400,{error:e.message})}}
     const sub=total,fee=dq.fee||0,gp=dq.lat!=null?{lat:dq.lat,lng:dq.lng}:geo?{lat:+la.toFixed(6),lng:+lo.toFixed(6)}:null;
@@ -583,6 +584,7 @@ const server=http.createServer(async(req,res)=>{try{
     const no={ok:false,status:0,msg:'Kalit kiritilmagan'};
     return send(res,200,{geo:gk?await chk(YGEO+'?'+new URLSearchParams({apikey:gk,geocode:'Poytug',format:'json',results:'1'})):no,js:jk?await chk('https://api-maps.yandex.ru/v3/?'+new URLSearchParams({apikey:jk,lang:'ru_RU'})):no,map:MAPERR,rev:await revgeo(c.lat,c.lng,c,1).catch(()=>''),revsrc:LREV,revlog:RLOG,yerr:YST.e,build:BUILD,info:MAPINFO});
   }
+  if(u==='/api/admin/quote'){try{return send(res,200,await quote(b,true))}catch(e){return send(res,400,{error:e.message})}}
   if(u==='/api/admin/telegram-test'){
     if(!tgOn())return send(res,200,{ok:false,error:'BOT_TOKEN yoki CHAT_ID berilmagan. .env faylini tekshiring.'});
     try{
