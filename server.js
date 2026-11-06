@@ -45,11 +45,11 @@ const feeOf=(km,c)=>c.delOn?c.delFirst+Math.ceil(Math.max(0,km-1))*c.delKm:0;
 const minErr=(sub,c)=>c.minOn&&c.minSum>0&&sub<c.minSum?`Minimal buyurtma summasi ${fmtN(c.minSum)} soʻm. Yana ${fmtN(c.minSum-sub)} soʻm qoʻshing`:'';
 const ptOf=b=>{const la=b.lat==null||b.lat===''?NaN:+b.lat,lo=b.lng==null||b.lng===''?NaN:+b.lng;return Number.isFinite(la)&&Number.isFinite(lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180?{lat:la,lng:lo}:null};
 const yKey=c=>c.yandexGeoKey||c.yandexKey||cl(E.YANDEX_GEO_KEY,80).replace(/[^\w-]/g,'')||cl(E.YANDEX_MAPS_KEY,80).replace(/[^\w-]/g,'');
-let SITE=(E.SITE_URL||'').replace(/\/+$/,'');const BUILD='2026-11-05-f';
+let SITE=(E.SITE_URL||'').replace(/\/+$/,'');const BUILD='2026-11-05-g';
 const yh=url=>SITE&&/yandex/.test(String(url))?{referer:SITE+'/',origin:SITE}:{};
 async function getJson(url,ms=6000){const r=await fetch(url,{signal:AbortSignal.timeout(ms),headers:{'user-agent':UA,'accept-language':'uz,ru',...yh(url)}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
 const GC=new Map(),RC=new Map(),memo=(m,k,v)=>{m.set(k,v);if(m.size>500)m.delete(m.keys().next().value);return v};
-const YST={e:'',t:0};let MAPERR=null,MAPINFO=''; // YST: oxirgi Yandex geokoder xatosi; MAPERR: brauzerdagi oxirgi xarita xatosi
+const YST={e:'',t:0};let MAPERR=null,MAPINFO='',MAPGPS=''; // YST: oxirgi Yandex geokoder xatosi; MAPERR: brauzerdagi oxirgi xarita xatosi
 // Yandex geokoder: avval oʻzbekcha (uz_UZ), boʻlmasa ruscha (ru_RU) javob
 let UZ_BAD=false; // Yandex uz_UZ tilini qabul qilmasa (HTTP 400) — keyingi soʻrovlarda ru_RU dan boshlanadi
 async function ygeoReq(key,extra){
@@ -520,7 +520,7 @@ const server=http.createServer(async(req,res)=>{try{
   let b;try{b=await body(req,u==='/api/admin/upload'&&authed(req)?5e6:2e5)}catch(e){return send(res,e.message==='big'?413:400,{error:e.message==='big'?'Soʻrov juda katta (rasm hajmi katta)':'Xato soʻrov'})}
   if(u==='/api/quote'||u==='/api/rev'||u==='/api/suggest'||u==='/api/maplog'){
     const sg=u==='/api/suggest',rv=u==='/api/rev',qk=sg?'s'+ip:rv?'r'+ip:ip,qn=Date.now(),ql=(quoT.get(qk)||[]).filter(t=>qn-t<6e4);if(ql.length>=(sg?90:rv?150:40))return send(res,429,{error:'Juda koʻp soʻrov. Birozdan keyin urinib koʻring'});ql.push(qn);quoT.set(qk,ql);
-    if(u==='/api/maplog'){if(b.i)MAPINFO=cl(b.i,200);else MAPERR={t:Date.now(),e:cl(b.e,300),csp:cl(b.csp,400)};return send(res,200,{ok:1})}
+    if(u==='/api/maplog'){if(b.g)MAPGPS=cl(b.g,200);else if(b.i)MAPINFO=cl(b.i,200);else MAPERR={t:Date.now(),e:cl(b.e,300),csp:cl(b.csp,400)};return send(res,200,{ok:1})}
     if(sg)return send(res,200,{list:await suggest(b.q,cfgFull())});
     if(u==='/api/rev'){const p=ptOf(b);if(!p)return send(res,400,{error:'Koordinata notoʻgʻri'});return send(res,200,{addr:await Promise.race([revgeo(p.lat,p.lng,cfgFull()).catch(()=>''),new Promise(r=>setTimeout(()=>r(''),9000))])})}
     try{return send(res,200,await quote(b))}catch(e){return send(res,400,{error:e.message})}
@@ -583,7 +583,7 @@ const server=http.createServer(async(req,res)=>{try{
     const c=cfgFull(),gk=yKey(c),jk=c.yandexKey||cl(E.YANDEX_MAPS_KEY,80).replace(/[^\w-]/g,'');
     const chk=async url=>{try{const r=await fetch(url,{signal:AbortSignal.timeout(7000),headers:{'user-agent':UA,...yh(url)}}),t=await r.text();return{ok:r.ok,status:r.status,msg:r.ok?'':t.slice(0,160)}}catch(e){return{ok:false,status:0,msg:e.message}}};
     const no={ok:false,status:0,msg:'Kalit kiritilmagan'};
-    return send(res,200,{geo:gk?await chk(YGEO+'?'+new URLSearchParams({apikey:gk,geocode:'Poytug',format:'json',results:'1'})):no,js:jk?await chk('https://api-maps.yandex.ru/v3/?'+new URLSearchParams({apikey:jk,lang:'ru_RU'})):no,map:MAPERR,rev:await revgeo(c.lat,c.lng,c,1).catch(()=>''),revsrc:LREV,revlog:RLOG,yerr:YST.e,build:BUILD,info:MAPINFO});
+    return send(res,200,{geo:gk?await chk(YGEO+'?'+new URLSearchParams({apikey:gk,geocode:'Poytug',format:'json',results:'1'})):no,js:jk?await chk('https://api-maps.yandex.ru/v3/?'+new URLSearchParams({apikey:jk,lang:'ru_RU'})):no,map:MAPERR,rev:await revgeo(c.lat,c.lng,c,1).catch(()=>''),revsrc:LREV,revlog:RLOG,yerr:YST.e,build:BUILD,info:MAPINFO,gps:MAPGPS});
   }
   if(u==='/api/admin/quote'){try{return send(res,200,await quote(b,true))}catch(e){return send(res,400,{error:e.message})}}
   if(u==='/api/admin/telegram-test'){
