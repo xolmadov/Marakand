@@ -490,7 +490,7 @@ document.addEventListener('click',e=>{
 $('sheet').onclick=e=>{if(e.target.id==='sheet')sheetClose()};
 $('cbtn').onclick=$('dc').onclick=()=>{openPage('pgc');refreshCfg()};
 $('dd').onclick=openDel;$('fab').onclick=openCats;
-$('cnext').onclick=()=>{if(cnt()){openPage('pgk');refreshCfg().then(()=>quoteSoon(0))}};
+$('cnext').onclick=()=>{if(cnt()){warmGeo();openPage('pgk');refreshCfg().then(()=>quoteSoon(0))}};
 $('cclr').onclick=()=>{const go=()=>{cart={};keep();refresh_all();drawCart()};const msg='Savatchadagi hamma taomlar oʻchirilsinmi?';(TW&&TW.showConfirm)?TW.showConfirm(msg,ok=>{if(ok)go()}):(confirm(msg)&&go())};
 function refresh_all(){document.querySelectorAll('.pb[data-id]').forEach(c=>{const m=by(c.dataset.id);if(m)c.innerHTML=pctl(m)})}
 $('q').oninput=e=>{qs=e.target.value.trim().toLowerCase();drawMenu()};
@@ -545,7 +545,8 @@ function mkLeaflet(){
   const m=L.map('mmap',{zoomControl:false}).setView([CFG.lat,CFG.lng],16);
   const T=CFG.maptilerKey?{u:'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key='+CFG.maptilerKey,a:'© MapTiler © OpenStreetMap',s:'abc'}:{u:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',a:'© OpenStreetMap',s:'abc'};
   let terr=0;const tl=L.tileLayer(T.u,{maxZoom:19,subdomains:T.s,attribution:T.a});tl.on('tileerror',()=>{if(++terr===4)$('mpa').textContent='Xarita rasmlari yuklanmadi. Nuqtani belgilab, manzilni qoʻlda yozishingiz mumkin.'});tl.addTo(m);
-  return {center:()=>{const c=m.getCenter();return{lat:c.lat,lng:c.lng}},set:(a,b,z)=>m.setView([a,b],z||17),start:f=>m.on('movestart',f),end:f=>m.on('moveend',f),resize:()=>m.invalidateSize(),zoom:d=>m.setZoom(m.getZoom()+d)};
+  let cc=null;
+  return {center:()=>{const c=m.getCenter();return{lat:c.lat,lng:c.lng}},set:(a,b,z)=>m.setView([a,b],z||17),circle:(a,b,r)=>{if(cc){m.removeLayer(cc);cc=null}if(r)cc=L.circle([a,b],{radius:r,color:'#d6a84f',weight:1.5,fillOpacity:.15}).addTo(m)},start:f=>m.on('movestart',f),end:f=>m.on('moveend',f),resize:()=>m.invalidateSize(),zoom:d=>m.setZoom(m.getZoom()+d)};
 }
 function mkYandex(){
   const{YMap,YMapDefaultSchemeLayer,YMapDefaultFeaturesLayer,YMapListener}=ymaps3;
@@ -568,8 +569,10 @@ function mkYandex(){
   new MutationObserver(()=>{if(!hq)hq=requestAnimationFrame(hideOpen)}).observe(document.body,{childList:true,subtree:true});
   [400,1200,3000].forEach(ms=>setTimeout(()=>{hideOpen();if(ms===3000)try{fetch('/api/maplog',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({i:'Ochish tugmasi yashirildi: '+hn+' ta'})})}catch(e){}},ms));
   map.addChild(new YMapListener({layer:'any',onUpdate:({location,mapInAction})=>{lastU=Date.now();ctr=location.center;z=location.zoom;if(mapInAction){if(!was){was=true;cbS()}}else{was=false;cbE()}}}));
+  let circ=null;
+  const circle=(a,b,r)=>{try{if(circ){map.removeChild(circ);circ=null}if(!r)return;const{YMapFeature}=ymaps3,pts=[];for(let i=0;i<=48;i++){const t=i/48*2*Math.PI;pts.push([b+r*Math.sin(t)/(111320*Math.cos(a*Math.PI/180)),a+r*Math.cos(t)/111320])}circ=new YMapFeature({geometry:{type:'Polygon',coordinates:[pts]},style:{fill:'rgba(214,168,79,0.18)',stroke:[{color:'#d6a84f',width:1.5}]}});map.addChild(circ)}catch(e){}};
   setInterval(()=>{if(was&&Date.now()-lastU>900){was=false;cbE()}},400); // «harakat tugadi» hodisasi kelmay qolsa ham manzil aniqlanaveradi
-  return {center:()=>({lat:ctr[1],lng:ctr[0]}),set:(a,b,zz)=>{ctr=[b,a];z=zz||17;lastU=Date.now();map.update({location:{center:[b,a],zoom:z}})},start:f=>{cbS=f},end:f=>{cbE=f},resize:()=>{},zoom:d=>map.update({location:{zoom:Math.max(3,Math.min(19,z+d)),duration:200}})};
+  return {circle,center:()=>({lat:ctr[1],lng:ctr[0]}),set:(a,b,zz)=>{ctr=[b,a];z=zz||17;lastU=Date.now();map.update({location:{center:[b,a],zoom:z}})},start:f=>{cbS=f},end:f=>{cbE=f},resize:()=>{},zoom:d=>map.update({location:{zoom:Math.max(3,Math.min(19,z+d)),duration:200}})};
 }
 // koordinata boʻyicha manzil: server Yandex geokoderidan soʻraydi (kalit boʻlmasa OpenStreetMap)
 async function addrOf(c){
@@ -590,34 +593,42 @@ function rev(){
   rt=setTimeout(async()=>{let a='';try{a=await addrOf(c)}catch(e){}done(a)},450);
   setTimeout(()=>done(''),9500); // server javob bermasa ham tugma qotib qolmaydi
 }
-let gw=0,lt=0;
+let gw=0,lt=0,WARM=null;
 function stopLoc(){lt++;if(gw){try{navigator.geolocation.clearWatch(gw)}catch(e){}gw=0}}
+// ruxsat berilgan boʻlsa, joylashuvni oldindan (kutmasdan) olib qoʻyamiz — xarita ochilganda darrov tayyor boʻladi
+function warmGeo(){try{if(!navigator.permissions||!navigator.geolocation)return;navigator.permissions.query({name:'geolocation'}).then(s=>{if(s.state==='granted')navigator.geolocation.getCurrentPosition(p=>{WARM={la:p.coords.latitude,lo:p.coords.longitude,acc:p.coords.accuracy,t:Date.now()}},()=>{},{enableHighAccuracy:false,maximumAge:300000,timeout:6000})}).catch(()=>{})}catch(e){}}
+const zoomFor=a=>a>300?15:a>100?16:a>40?17:18;
 function locate(){
-  stopLoc();const my=lt;let got=0;
-  setA('Joylashuvingiz aniqlanmoqda…',1);$('mpok').disabled=true;$('mpc').hidden=true;
+  stopLoc();const my=lt,t0=Date.now();let best=1e9,src='',fin=0;
+  setA('Joylashuvingiz aniqlanmoqda…',1);$('mpok').disabled=true;
   const note=(t,w)=>{const c=$('mpc');c.hidden=!t;c.classList.toggle('w',!!w);c.textContent=t||''};
-  const fail=msg=>{if(my!==lt||got)return;stopLoc();rev();note(msg,1)};
-  const fix=(la,lo,acc)=>{
-    if(my!==lt)return;got=1;MX.set(la,lo,18);rev();
-    if(acc>0)note(acc>60?`GPS aniqligi ±${Math.round(acc)} m. Nuqtani xaritada tuzating`:`GPS aniqligi ±${Math.round(acc)} m`,acc>60);
+  const report=()=>{try{fetch('/api/maplog',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({g:`manba=${src||'—'} aniqlik=${best<1e9?Math.round(best)+' m':'—'} vaqt=${Math.round((Date.now()-t0)/100)/10}s`})})}catch(e){}};
+  const show=done=>{
+    if(best===1e9)return;const r=Math.round(best);
+    if(!done)note(`Aniqlanmoqda… hozircha ±${r} m`,0);
+    else note(best>100?`GPS aniqligi ±${r} m. Telefonda GPS va Telegram uchun «Aniq joylashuv» ruxsati yoqilganini tekshiring yoki nuqtani xaritada suring`:`GPS aniqligi ±${r} m`,best>60);
   };
-  const web=()=>{
-    if(!navigator.geolocation){fail('Brauzer joylashuvni aniqlay olmaydi. Xaritani surib belgilang.');return}
-    let best=1e9;
-    gw=navigator.geolocation.watchPosition(p=>{
-      if(my!==lt)return;const a=p.coords.accuracy||1e9;
-      if(a<best){best=a;fix(p.coords.latitude,p.coords.longitude,a)}
-      if(a<=25)stopLoc();
-    },er=>{if(my!==lt)return;if(best<1e9){stopLoc();return}fail(er.code===1?'Joylashuvga ruxsat berilmadi. Telefon sozlamasidan yoqing yoki xaritani surib belgilang.':'Joylashuv aniqlanmadi. GPS yoqilganini tekshiring yoki xaritani surib belgilang.')},{enableHighAccuracy:true,maximumAge:0,timeout:20000});
-    setTimeout(()=>{if(my===lt&&!got)fail('Joylashuv aniqlanmadi. GPS yoqilganini tekshiring yoki xaritani surib belgilang.')},22000);
+  const end=()=>{if(my!==lt||fin)return;fin=1;stopLoc();show(1);report()};
+  const fail=msg=>{if(my!==lt)return;stopLoc();rev();note(msg,1);report()};
+  // har bir yangi oʻlchov faqat aniqroq boʻlsa qabul qilinadi
+  const take=(la,lo,acc,s)=>{
+    if(my!==lt||!(acc>0))return;if(best<1e9&&acc>=best*0.9)return;
+    best=acc;src=s;MX.set(la,lo,zoomFor(acc));if(MX.circle)MX.circle(la,lo,acc);rev();show(0);if(acc<=15)end();
   };
-  // Telegram Mini App ichida telefonning oʻz GPS modulidan foydalanamiz (eng aniq)
+  if(WARM&&Date.now()-WARM.t<300000)take(WARM.la,WARM.lo,WARM.acc,'oldindan');
+  if(!navigator.geolocation&&!(TW&&TW.LocationManager)){fail('Brauzer joylashuvni aniqlay olmaydi. Xaritani surib belgilang.');return}
+  if(navigator.geolocation){
+    // 1) tezkor (taxminiy) joylashuv — bir zumda xaritani yaqinlashtiradi
+    navigator.geolocation.getCurrentPosition(p=>take(p.coords.latitude,p.coords.longitude,p.coords.accuracy,'tezkor'),()=>{},{enableHighAccuracy:false,maximumAge:120000,timeout:4000});
+    // 2) aniq GPS — oʻlchovlar yaxshilangan sari xarita ham aniqlashadi
+    gw=navigator.geolocation.watchPosition(p=>take(p.coords.latitude,p.coords.longitude,p.coords.accuracy,'gps'),er=>{if(my!==lt||best<1e9)return;fail(er.code===1?'Joylashuvga ruxsat berilmadi. Telefon sozlamasidan yoqing yoki xaritani surib belgilang.':'Joylashuv aniqlanmadi. GPS yoqilganini tekshiring yoki xaritani surib belgilang.')},{enableHighAccuracy:true,maximumAge:0,timeout:25000});
+  }
+  // 3) Telegram Mini App: telefonning oʻz GPS moduli (parallel ishlaydi, aniqroq boʻlsa ishlatiladi)
   const LM=TW&&TW.LocationManager;
   if(LM&&TW.isVersionAtLeast&&TW.isVersionAtLeast('8.0')){
-    let used=0;const toWeb=()=>{if(used||my!==lt)return;used=1;web()};
-    setTimeout(()=>{if(!got)toWeb()},7000); // Telegram javob bermasa brauzer GPS ga oʻtamiz
-    try{LM.init(()=>{if(my!==lt||used)return;if(!LM.isLocationAvailable){toWeb();return}LM.getLocation(l=>{if(my!==lt||used)return;if(l&&l.latitude!=null){used=1;fix(l.latitude,l.longitude,l.horizontal_accuracy||0)}else toWeb()})})}catch(e){toWeb()}
-  }else web();
+    try{LM.init(()=>{if(my!==lt||!LM.isLocationAvailable)return;LM.getLocation(l=>{if(l&&l.latitude!=null)take(l.latitude,l.longitude,l.horizontal_accuracy||30,'telegram')})})}catch(e){}
+  }
+  setTimeout(()=>{if(my!==lt)return;if(best===1e9)fail('Joylashuv aniqlanmadi. GPS yoqilganini tekshiring yoki xaritani surib belgilang.');else end()},25000);
 }
 async function openMap(){
   $('mp').hidden=false;fitSheet();
@@ -630,7 +641,7 @@ async function openMap(){
     try{MX=useY?mkYandex():mkLeaflet()}catch(e){if(useY){yFail(e);return openMap()}throw e}
     MX.start(()=>{$('pin').classList.add('up');$('msg').hidden=true;$('msq').blur();cur=null;$('mpok').disabled=true});MX.end(()=>{$('pin').classList.remove('up');rev()});
     $('zin').onclick=()=>MX.zoom(1);$('zout').onclick=()=>MX.zoom(-1);
-    $('mmap').addEventListener('pointerdown',stopLoc,{passive:true});$('locb').onclick=()=>MX&&locate();
+    $('mmap').addEventListener('pointerdown',()=>{stopLoc();if(MX&&MX.circle)MX.circle()},{passive:true});$('locb').onclick=()=>MX&&locate();
   }
   // nuqta boʻlsa — shu nuqta; yozilgan manzil topilgan boʻlsa — oʻsha joy (tekshirish uchun); aks holda mijoz joylashuvi
   setTimeout(()=>{MX.resize();if(pick)MX.set(pick.lat,pick.lng,17);else if(Q.ok&&Q.src==='addr')MX.set(Q.lat,Q.lng,17);else if(!MX.loc){MX.loc=1;locate()}},80);
