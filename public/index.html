@@ -549,7 +549,7 @@ function mkLeaflet(){
 }
 function mkYandex(){
   const{YMap,YMapDefaultSchemeLayer,YMapDefaultFeaturesLayer,YMapListener}=ymaps3;
-  let ctr=[CFG.lng,CFG.lat],z=16,was=false,cbS=()=>{},cbE=()=>{};
+  let ctr=[CFG.lng,CFG.lat],z=16,was=false,lastU=0,cbS=()=>{},cbE=()=>{};
   const map=new YMap($('mmap'),{location:{center:ctr,zoom:z}});
   map.addChild(new YMapDefaultSchemeLayer());map.addChild(new YMapDefaultFeaturesLayer());
   // Yandexning «Yandex Xaritalarda ochish» tugmasi pastki panel ustiga tushmasligi uchun yashiriladi
@@ -567,44 +567,56 @@ function mkYandex(){
   const hideOpen=()=>{hq=0;if(!$('mp').hidden)scan(document.body)};
   new MutationObserver(()=>{if(!hq)hq=requestAnimationFrame(hideOpen)}).observe(document.body,{childList:true,subtree:true});
   [400,1200,3000].forEach(ms=>setTimeout(()=>{hideOpen();if(ms===3000)try{fetch('/api/maplog',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({i:'Ochish tugmasi yashirildi: '+hn+' ta'})})}catch(e){}},ms));
-  map.addChild(new YMapListener({layer:'any',onUpdate:({location,mapInAction})=>{ctr=location.center;z=location.zoom;if(mapInAction){if(!was){was=true;cbS()}}else{was=false;cbE()}}}));
-  return {center:()=>({lat:ctr[1],lng:ctr[0]}),set:(a,b,zz)=>map.update({location:{center:[b,a],zoom:zz||17}}),start:f=>{cbS=f},end:f=>{cbE=f},resize:()=>{},zoom:d=>map.update({location:{zoom:Math.max(3,Math.min(19,z+d)),duration:200}})};
+  map.addChild(new YMapListener({layer:'any',onUpdate:({location,mapInAction})=>{lastU=Date.now();ctr=location.center;z=location.zoom;if(mapInAction){if(!was){was=true;cbS()}}else{was=false;cbE()}}}));
+  setInterval(()=>{if(was&&Date.now()-lastU>900){was=false;cbE()}},400); // «harakat tugadi» hodisasi kelmay qolsa ham manzil aniqlanaveradi
+  return {center:()=>({lat:ctr[1],lng:ctr[0]}),set:(a,b,zz)=>{ctr=[b,a];z=zz||17;lastU=Date.now();map.update({location:{center:[b,a],zoom:z}})},start:f=>{cbS=f},end:f=>{cbE=f},resize:()=>{},zoom:d=>map.update({location:{zoom:Math.max(3,Math.min(19,z+d)),duration:200}})};
 }
 // koordinata boʻyicha manzil: server Yandex geokoderidan soʻraydi (kalit boʻlmasa OpenStreetMap)
 async function addrOf(c){
-  const r=await fetch('/api/rev',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({lat:c.lat,lng:c.lng})}),d=await r.json();
-  return tr(d.addr||'');
+  const ac=new AbortController(),t=setTimeout(()=>ac.abort(),8500);
+  try{const r=await fetch('/api/rev',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({lat:c.lat,lng:c.lng}),signal:ac.signal}),d=await r.json();return tr(d.addr||'')}
+  finally{clearTimeout(t)}
 }
 function fitSheet(){$('mp').style.setProperty('--sh',$('msheet').offsetHeight+'px')}
 function setA(t,ld){const a=$('mpa');a.textContent=t;a.classList.toggle('ld',!!ld);fitSheet()}
+let rtk=0;
 function rev(){
-  clearTimeout(rt);const c=MX.center();cur={lat:c.lat,lng:c.lng,addr:''};$('mpok').disabled=true;setA('Manzil aniqlanmoqda…',1);
-  rt=setTimeout(async()=>{
-    let a='';try{a=await addrOf(c)}catch(e){}
-    if(cur&&cur.lat===c.lat&&cur.lng===c.lng){cur.addr=a;setA(a||'Nuqta tanlandi',!a);$('mpok').disabled=false}
-  },450);
+  clearTimeout(rt);const c=MX.center(),tk=++rtk;cur={lat:c.lat,lng:c.lng,addr:''};$('mpok').disabled=true;setA('Manzil aniqlanmoqda…',1);
+  const done=a=>{
+    const n=MX.center();if(tk!==rtk||n.lat!==c.lat||n.lng!==c.lng)return;
+    if(!a&&cur&&cur.addr)return;
+    cur={lat:c.lat,lng:c.lng,addr:a};setA(a||'Nuqta tanlandi',!a);$('mpok').disabled=false;
+  };
+  rt=setTimeout(async()=>{let a='';try{a=await addrOf(c)}catch(e){}done(a)},450);
+  setTimeout(()=>done(''),9500); // server javob bermasa ham tugma qotib qolmaydi
 }
 let gw=0,lt=0;
 function stopLoc(){lt++;if(gw){try{navigator.geolocation.clearWatch(gw)}catch(e){}gw=0}}
 function locate(){
-  stopLoc();const my=lt;setA('Joylashuvingiz aniqlanmoqda…',1);$('mpc').hidden=true;
+  stopLoc();const my=lt;let got=0;
+  setA('Joylashuvingiz aniqlanmoqda…',1);$('mpok').disabled=true;$('mpc').hidden=true;
+  const note=(t,w)=>{const c=$('mpc');c.hidden=!t;c.classList.toggle('w',!!w);c.textContent=t||''};
+  const fail=msg=>{if(my!==lt||got)return;stopLoc();rev();note(msg,1)};
   const fix=(la,lo,acc)=>{
-    if(my!==lt)return;MX.set(la,lo,18);const c=$('mpc');
-    if(acc>0){c.hidden=false;c.classList.toggle('w',acc>60);c.textContent=acc>60?`GPS aniqligi ±${Math.round(acc)} m. Nuqtani xaritada tuzating`:`GPS aniqligi ±${Math.round(acc)} m`}
+    if(my!==lt)return;got=1;MX.set(la,lo,18);rev();
+    if(acc>0)note(acc>60?`GPS aniqligi ±${Math.round(acc)} m. Nuqtani xaritada tuzating`:`GPS aniqligi ±${Math.round(acc)} m`,acc>60);
   };
   const web=()=>{
-    if(!navigator.geolocation){setA('Brauzer joylashuvni aniqlay olmaydi');return}
-    let best=1e9;const tm=setTimeout(()=>{if(my===lt)stopLoc()},20000);
+    if(!navigator.geolocation){fail('Brauzer joylashuvni aniqlay olmaydi. Xaritani surib belgilang.');return}
+    let best=1e9;
     gw=navigator.geolocation.watchPosition(p=>{
       if(my!==lt)return;const a=p.coords.accuracy||1e9;
       if(a<best){best=a;fix(p.coords.latitude,p.coords.longitude,a)}
-      if(a<=25){clearTimeout(tm);stopLoc()}
-    },er=>{clearTimeout(tm);if(my!==lt)return;stopLoc();if(best===1e9)setA(er.code===1?'Joylashuvga ruxsat berilmadi. Telefon sozlamasidan yoqing yoki xaritani surib belgilang.':'Joylashuv aniqlanmadi. Xaritani surib belgilang.')},{enableHighAccuracy:true,maximumAge:0,timeout:20000});
+      if(a<=25)stopLoc();
+    },er=>{if(my!==lt)return;if(best<1e9){stopLoc();return}fail(er.code===1?'Joylashuvga ruxsat berilmadi. Telefon sozlamasidan yoqing yoki xaritani surib belgilang.':'Joylashuv aniqlanmadi. GPS yoqilganini tekshiring yoki xaritani surib belgilang.')},{enableHighAccuracy:true,maximumAge:0,timeout:20000});
+    setTimeout(()=>{if(my===lt&&!got)fail('Joylashuv aniqlanmadi. GPS yoqilganini tekshiring yoki xaritani surib belgilang.')},22000);
   };
   // Telegram Mini App ichida telefonning oʻz GPS modulidan foydalanamiz (eng aniq)
   const LM=TW&&TW.LocationManager;
   if(LM&&TW.isVersionAtLeast&&TW.isVersionAtLeast('8.0')){
-    try{LM.init(()=>{if(my!==lt)return;if(!LM.isLocationAvailable){web();return}LM.getLocation(l=>{if(my!==lt)return;if(l&&l.latitude!=null)fix(l.latitude,l.longitude,l.horizontal_accuracy||0);else web()})})}catch(e){web()}
+    let used=0;const toWeb=()=>{if(used||my!==lt)return;used=1;web()};
+    setTimeout(()=>{if(!got)toWeb()},7000); // Telegram javob bermasa brauzer GPS ga oʻtamiz
+    try{LM.init(()=>{if(my!==lt||used)return;if(!LM.isLocationAvailable){toWeb();return}LM.getLocation(l=>{if(my!==lt||used)return;if(l&&l.latitude!=null){used=1;fix(l.latitude,l.longitude,l.horizontal_accuracy||0)}else toWeb()})})}catch(e){toWeb()}
   }else web();
 }
 async function openMap(){
@@ -660,7 +672,7 @@ $('shb').addEventListener('click',e=>{
   if(r){const a=SA.get()[+r.dataset.xi];if(!a)return;pick={lat:a.lat,lng:a.lng};padr=a.t||'';$('fe').value=a.e||'';$('ff').value=a.f||'';$('fk').value=a.k||'';sheetClose();drawAddr();quoteSoon(0)}
 });
 $('adr').onclick=openAddr;$('mpx').onclick=()=>{stopLoc();$('mp').hidden=true};$('locb').onclick=()=>MX&&locate();
-$('mpok').onclick=()=>{if(!cur)return;stopLoc();pick={lat:cur.lat,lng:cur.lng};padr=cur.addr||'';saveAddr({lat:pick.lat,lng:pick.lng,t:padr});$('mp').hidden=true;drawAddr();quoteSoon(0)};
+$('mpok').onclick=()=>{const n=MX&&MX.center();if(!cur||!n||cur.lat!==n.lat||cur.lng!==n.lng)return;stopLoc();pick={lat:cur.lat,lng:cur.lng};padr=cur.addr||'';saveAddr({lat:pick.lat,lng:pick.lng,t:padr});$('mp').hidden=true;drawAddr();quoteSoon(0)};
 function done(o,id){
   $('ok').innerHTML=`<div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div><h2>Buyurtmangiz qabul qilindi</h2><div class="no">№ ${id}</div>
 <div class="rc">${o.items.map(i=>`<div class="r"><span>${esc(i.n)} × ${i.q}</span><span>${fmt(i.p*i.q)}</span></div>`).join('')}${o.fee?`<div class="r"><span>Yetkazish${o.km?` (${o.km} km)`:''}</span><span>${fmt(o.fee)}</span></div>`:''}<div class="r tt"><span>Jami</span><span>${fmt(o.total)}</span></div><div class="r"><span>Toʻlov</span><span>Naqd pul, kuryerga</span></div><div class="r"><span>Manzil</span><span>${esc(o.addr)}</span></div></div>
